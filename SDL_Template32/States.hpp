@@ -1,7 +1,7 @@
 #pragma once
+#include "SDL.h"
 
-
-class Sprite;
+class Sprite; //will depend on implementation
 class PlayButton;
 
 class State{
@@ -27,6 +27,16 @@ class TitleState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+
+	private:
+		//text attributes
+		SDL_Texture* m_tText;
+		const char* m_cText;
+		SDL_Rect m_rText;
+		SDL_Color m_cTexColor;
+
+		SDL_Rect m_rSrc, m_rDest;
+		PlayButton* m_pButton;
 };
 
 class MenuState : public State {
@@ -53,12 +63,16 @@ class GameState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+
+	private:
+		//may require rework
+		bool CheckCollision(SDL_Rect bb1, SDL_Rect bb2);
 };
 
-class LoseState : public State {
+class PauseState : public State {
 	public:
-		LoseState();
-		compl LoseState();
+		PauseState();
+		compl PauseState();
 	
 		void Update() final override;
 		void Render() final override;
@@ -66,4 +80,17 @@ class LoseState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+};
+
+class LoseState : public State {
+public:
+	LoseState();
+	compl LoseState();
+
+	void Update() final override;
+	void Render() final override;
+	void Enter() final override;
+	void Pause() final override;
+	void Resume() final override;
+	void Exit() final override;
 };

@@ -1,5 +1,7 @@
 #.vs files
 .vs
 .vs?
+*x64
+x64*
 Debug*
 GAME1017_A2_Outline.pdf

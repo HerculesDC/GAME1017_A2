@@ -1,8 +1,6 @@
 #pragma once
 #include <vector>
 #include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_mixer.h"
 #include "SDL_ttf.h"
 using namespace std;
 
@@ -13,8 +11,7 @@ private:
 	bool m_bGotTick;
 	SDL_Window* m_pWindow;
 	SDL_Renderer* m_pRenderer;
-	SDL_Texture* m_pTexture;
-	SDL_Surface* m_pSurface;
+	TTF_Font* m_pFont;
 	const Uint8* m_iKeystates;
 	Uint32 m_start, m_end, m_delta, m_fps;
 
@@ -34,6 +31,7 @@ private:
 public:
 	static Game* Instance();
 	void Run(const char*, int, int, int, int, int);
+	TTF_Font* GetFont() { return m_pFont; }
 	SDL_Window* GetWindow() { return m_pWindow; }
 	SDL_Renderer* GetRenderer() { return m_pRenderer; }
 	bool KeyDown(SDL_Scancode c);

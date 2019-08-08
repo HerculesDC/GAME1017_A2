@@ -1,6 +1,10 @@
 #include <chrono>
 #include <iostream>
+
 #include "Game.h"
+
+#include "Managers.hpp"
+
 #define FPS 60
 using namespace std;
 using namespace chrono;
@@ -59,9 +63,14 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 			{
 				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
 				cout << "Renderer creation success!" << endl;
-				if (IMG_Init(IMG_INIT_PNG) != 0)
+				if (TextureManager::Instance()->Init())
 				{
-					// Add image stuff...
+					//may require refactoring
+					TextureManager::Instance()->Add("Img/TitleScreen.png");
+					TextureManager::Instance()->Add("Img/playButton.png");
+					TextureManager::Instance()->Add("Img/Backgrounds.png");
+					TextureManager::Instance()->Add("Img/Obstacles.png");
+					TextureManager::Instance()->Add("Img/Player.png");
 				}
 				else
 				{
@@ -86,6 +95,17 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 		cout << "SDL init fail!" << endl;
 		return false; // SDL init fail. 
 	}
+
+	if (AudioManager::Instance()->Init()) {
+		AudioManager::Instance()->AddMusic("Sound/Chase.mp3");
+		AudioManager::Instance()->AddMusic("Sound/Death.mp3");
+		AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav");
+	}
+
+	//decided to keep font in the Engine for now
+	TTF_Init();
+	m_pFont = TTF_OpenFont("Img/caveman.ttf", 0x32);
+
 	srand((unsigned)time(NULL));
 	m_iKeystates = SDL_GetKeyboardState(nullptr);
 	m_bRunning = true;
@@ -146,16 +166,26 @@ void Game::Sleep()
 
 void Game::Render()
 {
-	SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
-	SDL_RenderClear(m_pRenderer); // Clear the screen to the draw color.
+	SDL_SetRenderDrawColor(m_pRenderer, 255, 255, 255, 255);
+	SDL_RenderClear(m_pRenderer); // Clear the , screen to the draw color.
 	// Now render the backgrounds.
+	SDL_RenderCopy(m_pRenderer, TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
 	
+	SDL_Rect nr;
+	nr.x = 75; nr.y = 200;
+	const char* message = "TEST";
+	TTF_SizeText(m_pFont, message, &nr.w, &nr.h);
+	SDL_Color sc = { 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE };
+
+	SDL_RenderCopy(m_pRenderer, SDL_CreateTextureFromSurface(m_pRenderer, TTF_RenderText_Solid(m_pFont, message, sc)), nullptr, &nr);
+
 	SDL_RenderPresent(m_pRenderer); // Draw anew.
 }
 
 void Game::Clean()
 {
 	cout << "Cleaning game. Bye!" << endl;
+	TTF_CloseFont(m_pFont);
 	SDL_DestroyRenderer(m_pRenderer);
 	SDL_DestroyWindow(m_pWindow);
 	IMG_Quit();
