@@ -20,6 +20,7 @@ class TextureManager {
 	public:
 		bool Init();
 		void Add(const char* filename);
+		void Add(SDL_Texture* texture);
 		SDL_Texture* Retrieve(int index) const;
 
 		static TextureManager* Instance();

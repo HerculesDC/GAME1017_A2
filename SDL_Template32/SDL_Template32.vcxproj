@@ -124,12 +124,14 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Managers.cpp" />
+    <ClCompile Include="MessageFactory.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="States.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
     <ClInclude Include="Managers.hpp" />
+    <ClInclude Include="MessageFactory.hpp" />
     <ClInclude Include="StateMachine.hpp" />
     <ClInclude Include="States.hpp" />
   </ItemGroup>

@@ -1,6 +1,7 @@
 #include "States.hpp"
 #include "Game.h"
 #include "Managers.hpp"
+#include "MessageFactory.hpp"
 
 //base class
 State::State() {}
@@ -15,7 +16,22 @@ TitleState::TitleState() {}
 TitleState::compl TitleState() {}
 
 void TitleState:: Update() {}
-void TitleState::Render() {}
+void TitleState::Render() {
+
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
+	SDL_RenderClear(Game::Instance()->GetRenderer());
+	
+	// Now render the backgrounds.
+	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
+
+	SDL_Rect temp;
+		temp.x = 75;
+		temp.y =200;
+	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(5), nullptr, &temp);
+
+
+	State::Render();
+}
 void TitleState::Enter() {}
 void TitleState::Pause() {}
 void TitleState::Resume(){}

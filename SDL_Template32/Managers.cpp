@@ -37,6 +37,11 @@ void TextureManager::Add(const char* filename)
 	//	this approach makes it unnecessary to free the temporary surface after creation
 }
 
+void TextureManager::Add(SDL_Texture* source) {
+
+	m_vTextures.push_back(source);
+}
+
 SDL_Texture* TextureManager::Retrieve(int index) const {
 	if (index < m_vTextures.size()) return m_vTextures[index];
 	else return nullptr;
