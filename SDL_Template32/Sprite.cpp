@@ -20,9 +20,13 @@ void Sprite::SetDest(SDL_Rect destRect) {
 
 
 //requires the use of the functional header: check
-Button::Button(bool (StateMachine::*inFunction)(void*), void* param, int index): m_iIndex(index), m_innerState(MOUSEUP) {
-	OnClick = inFunction;
-	OnClick(StateMachine::Instance(), param);
+Button::Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, int index): 
+	m_cAddress(inCommand), 
+	OnClick(inFunction),
+	m_pParam(param), 
+	m_iIndex(index), 
+	m_innerState(MOUSEUP) 
+{
 }
 
 Button::compl Button() {}
@@ -38,16 +42,20 @@ void Button::Update() {
 			CommandHandler::Instance()->GetMouse()->y <= m_rDst.y + m_rDst.h) {
 
 			m_innerState = MOUSEOVER;
+			/*
 			if (CommandHandler::Instance()->GetMouse()->state == SDL_PRESSED) {
 				m_innerState = MOUSEDOWN;
 			}
 			if (CommandHandler::Instance()->GetMouse()->state == SDL_RELEASED) {
 				//this is where the command associated to the button takes effect
-				//m_innerState = MOUSEUP;
+				OnClick(m_cAddress, m_pParam);
 			}
+			//*/
 		}
 		else m_innerState = MOUSEUP;
+		
 	}
+	//else m_innerState = MOUSEUP;
 }
 
 void Button::Render() {
@@ -58,12 +66,6 @@ void Button::Render() {
 		SDL_RenderFillRect(Game::Instance()->GetRenderer(), &m_rDst);
 	}
 	
-	 //Retriece() takes the index of the desired texture
+	 //Retrieve() takes the index of the desired texture
 	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), nullptr, &m_rDst);
 }
-
-/*
-void Button::OnClick(void (*inFunction)(void*), void* parameter) {
-	(*inFunction)(parameter);
-}
-*/

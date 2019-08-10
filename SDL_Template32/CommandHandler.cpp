@@ -1,4 +1,11 @@
 #include "CommandHandler.hpp"
+#include "StateMachine.hpp"
+#include "Game.h"
+
+bool StateChangeCommand::Execute(void * exec) { return StateMachine::Instance().RequestStateChange(exec); }
+
+bool QuitCommand::Execute(void* exec) { Game::Instance()->Quit(); return false; }
+
 
 CommandHandler* CommandHandler::Instance() {
 
@@ -48,6 +55,9 @@ void CommandHandler::HandleEvents() {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 			m_pMouse = new SDL_MouseButtonEvent(evt.button);
+			break;
+		case SDL_MOUSEMOTION: //verify
+			m_pMotion = new SDL_MouseMotionEvent(evt.motion);
 			break;
 		}
 	}

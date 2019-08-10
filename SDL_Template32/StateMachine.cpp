@@ -25,31 +25,41 @@ bool StateMachine::RequestStateChange(void* toState) {
 
 	MachineStates* placeHolder = static_cast<MachineStates*>(toState);
 
-	if (*(MachineStates*)toState == m_innerState) return false; //will not change to same state
-
 	if (!m_vStates.empty()) {
+
+		if (*(MachineStates*)toState == m_innerState) return false; //will not change to same state
+
 		switch (*(MachineStates*)toState) {
 		case TITLE:
+			m_innerState = TITLE;
 			PushState(new TitleState);
 			break;
 		case MENU:
 			DestroyState();
+			m_innerState = MENU;
 			PushState(new MenuState);
 			break;
 		case GAME:
 			DestroyState();
-			//if the game was paused, resume
-			if (typeid(*(m_vStates.back())) == typeid(GameState)) m_vStates.back()->Resume();
-			else PushState(new GameState);
+			if (m_vStates.empty()) {
+				m_innerState = GAME;
+				PushState(new GameState);
+			}
+			else { 
+				if (typeid(*(m_vStates.back())) == typeid(GameState)) m_vStates.back()->Resume();
+			}
 			break;
 		case PAUSE:
+			m_innerState = PAUSE;
 			if (typeid(*(m_vStates.back())) == typeid(GameState)) PushState(new PauseState);
 			break;
 		case LOSE:
 			DestroyState();
+			m_innerState = LOSE;
 			PushState(new LoseState);
 			break;
 		case QUIT:
+			m_innerState = QUIT;
 			Clean();
 			break;
 		default:

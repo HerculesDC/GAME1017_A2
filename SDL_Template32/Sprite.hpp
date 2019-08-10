@@ -3,12 +3,12 @@
 
 #include "SDL.h"
 #include "SDL_image.h"
-#include "StateMachine.hpp"
+#include "CommandHandler.hpp"
 
 class Sprite {
 	public:
 		Sprite();
-		compl Sprite();
+		virtual compl Sprite();
 		virtual SDL_Rect GetSrc() const { return m_rSrc; }
 		virtual SDL_Rect GetDst() const { return m_rDst; }
 		
@@ -32,19 +32,19 @@ enum ButtonState { MOUSEUP = 0,
 				   MOUSEDOWN = 1, 
 				   MOUSEOVER = 1 << 1};
 
-class StateMachine;
 class Button : public Sprite {
 
 	public:
-		Button(bool (StateMachine::*inFunction)(void*), void* param, int index = 0);
+		Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, int index = 0);
 		compl Button();
 
 		virtual void Update() override;
 		virtual void Render() override;
-		//void OnClick(void (*inFunction)(void*), void* parameter);
 
 	private:
 		int m_iIndex; //for image retrieval purposes
-		std::function<bool(StateMachine&, void*)> OnClick;
+		std::function<bool(Command&, void*)> OnClick;
+		Command& m_cAddress;
+		void* m_pParam;
 		ButtonState m_innerState;
 };

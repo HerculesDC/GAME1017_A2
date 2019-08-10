@@ -18,6 +18,23 @@ TitleState::TitleState() {
 }
 TitleState::compl TitleState() {}
 
+//requires the use of the <functional> header... check
+void TitleState::Enter() {
+	//manually setting buttons for now
+	Command* c = new StateChangeCommand;
+	m_vButtons.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1)); //1: play button image
+
+	SDL_Rect* temp = TextureManager::Instance()->GetSize(1, 300, 500);
+	m_vButtons.back()->SetDest(*temp);
+
+	//this begets a new command, actually...
+	Command* q = new QuitCommand;
+	m_vButtons.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
+	temp = TextureManager::Instance()->GetSize(2, 565, 500);
+	m_vButtons.back()->SetDest(*temp);
+}
+
+
 void TitleState:: Update() {
 
 	for (std::vector<Button*>::iterator it = m_vButtons.begin(); it != m_vButtons.end(); it++) (*it)->Update();
@@ -50,18 +67,6 @@ void TitleState::Render() {
 	State::Render();
 }
 
-//requires the use of the <functional> header... check
-void TitleState::Enter() {
-	//manually setting buttons for now
-	m_vButtons.push_back(new Button(&StateMachine::RequestStateChange, new MachineStates(GAME), 1)); //1: play button image
-
-	SDL_Rect* temp = TextureManager::Instance()->GetSize(1, 300, 500);
-	m_vButtons.back()->SetDest(*temp);
-
-	m_vButtons.push_back(new Button(&StateMachine::RequestStateChange, new MachineStates(QUIT), 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 565, 500);
-	m_vButtons.back()->SetDest(*temp);
-}
 void TitleState::Pause() {}
 void TitleState::Resume(){}
 void TitleState::Exit() {}
@@ -75,15 +80,8 @@ void MenuState::Update() {}
 
 void MenuState::Render() {
 
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 0, 0, 255, 255);
 	SDL_RenderClear(Game::Instance()->GetRenderer());
-
-	// Now render the backgrounds.
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
-
-	// Text
-	SDL_Rect* temp = TextureManager::Instance()->GetSize(5, 50, 75);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(5), nullptr, temp);
 
 	State::Render();
 }
@@ -98,7 +96,14 @@ void MenuState::Exit() {}
 GameState::GameState() {}
 GameState::compl GameState() {}
 void GameState::Update() {}
-void GameState::Render() {}
+
+void GameState::Render() {
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 0, 0, 255, 255);
+	SDL_RenderClear(Game::Instance()->GetRenderer());
+
+	State::Render();
+}
+
 void GameState::Enter() {}
 void GameState::Pause() {}
 void GameState::Resume() {}

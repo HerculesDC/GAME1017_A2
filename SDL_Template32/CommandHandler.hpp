@@ -11,7 +11,11 @@ class Command {
 };
 
 class StateChangeCommand:public Command{
-	//virtual bool Execute() override
+	virtual bool Execute(void* exec) override;
+};
+
+class QuitCommand :public Command {
+	virtual bool Execute(void* exec) override;
 };
 
 class CommandHandler {
@@ -26,7 +30,8 @@ class CommandHandler {
 	private:
 		CommandHandler();
 		compl CommandHandler();
-
+		//will require redefinition for mouse states
 		const Uint8* m_piKeyStates;
 		const SDL_MouseButtonEvent* m_pMouse;
+		const SDL_MouseMotionEvent* m_pMotion;
 };
