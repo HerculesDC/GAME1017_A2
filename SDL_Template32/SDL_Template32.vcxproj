@@ -121,17 +121,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CommandHandler.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Managers.cpp" />
     <ClCompile Include="MessageFactory.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="States.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandHandler.hpp" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Managers.hpp" />
     <ClInclude Include="MessageFactory.hpp" />
+    <ClInclude Include="Sprite.hpp" />
     <ClInclude Include="StateMachine.hpp" />
     <ClInclude Include="States.hpp" />
   </ItemGroup>

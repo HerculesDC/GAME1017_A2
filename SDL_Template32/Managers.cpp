@@ -42,6 +42,18 @@ void TextureManager::Add(SDL_Texture* source) {
 	m_vTextures.push_back(source);
 }
 
+SDL_Rect* TextureManager::GetSize(int index, int x, int y) const {
+	
+	if (index < m_vTextures.size()) {
+		SDL_Rect* temp = new SDL_Rect;
+		temp->x = x;
+		temp->y = y;
+		SDL_QueryTexture(m_vTextures[index], NULL, NULL, &(*temp).w, &(*temp).h);
+		return temp;
+	}
+	else return nullptr;
+}
+
 SDL_Texture* TextureManager::Retrieve(int index) const {
 	if (index < m_vTextures.size()) return m_vTextures[index];
 	else return nullptr;

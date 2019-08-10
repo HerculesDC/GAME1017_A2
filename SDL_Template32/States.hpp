@@ -1,8 +1,7 @@
 #pragma once
+#include <vector>
 #include "SDL.h"
-
-class Sprite; //will depend on implementation
-class PlayButton;
+class Button;
 
 class State{
 	public:
@@ -29,14 +28,7 @@ class TitleState : public State {
 		void Exit() final override;
 
 	private:
-		//text attributes
-		SDL_Texture* m_tText;
-		const char* m_cText;
-		SDL_Rect m_rText;
-		SDL_Color m_cTexColor;
-
-		SDL_Rect m_rSrc, m_rDest;
-		PlayButton* m_pButton;
+		std::vector<Button*> m_vButtons;
 };
 
 class MenuState : public State {

@@ -6,6 +6,7 @@
 #include "MessageFactory.hpp"
 #include "StateMachine.hpp"
 #include "States.hpp"
+#include "CommandHandler.hpp"
 
 #define FPS 60
 using namespace std;
@@ -68,11 +69,12 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 				if (TextureManager::Instance()->Init())
 				{
 					//may require refactoring
-					TextureManager::Instance()->Add("Img/TitleScreen.png");
-					TextureManager::Instance()->Add("Img/playButton.png");
-					TextureManager::Instance()->Add("Img/Backgrounds.png");
-					TextureManager::Instance()->Add("Img/Obstacles.png");
-					TextureManager::Instance()->Add("Img/Player.png");
+					TextureManager::Instance()->Add("Img/TitleScreen.png");	//0
+					TextureManager::Instance()->Add("Img/playButton.png");	//1
+					TextureManager::Instance()->Add("Img/quitButton.png");	//2
+					TextureManager::Instance()->Add("Img/Backgrounds.png"); //3
+					TextureManager::Instance()->Add("Img/Obstacles.png");	//4
+					TextureManager::Instance()->Add("Img/Player.png");		//5
 				}
 				else
 				{
@@ -103,11 +105,27 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 			return false; // SDL init fail. 
 		}
 
-		if (MessageFactory::Instance()->Init())
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GOSH  DANG  TO  HECK !"));
-		else cout << "fonts not initialized" << endl;
+		if (MessageFactory::Instance()->Init()) {
+			//I planned to use a simple file parser for this, but it would introduce complications when indexing.
+			//I opted for this mostly for simplicity
+			//OBS: lowercase: full font <=> UPPERCASE: outline font											//Texture index
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//6
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//7
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//9
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("CHARACTER  SELECT"));		//10
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//11
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//12
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//13
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//14
+		}
+		else { 
+			
+			cout << "fonts not initialized" << endl;
+			return false;
+		}
 
-		StateMachine::Instance()->RequestStateChange(new TitleState());
+		StateMachine::Instance().RequestStateChange(new MachineStates(TITLE));
 	}
 	else
 	{
@@ -117,7 +135,7 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 
 	
 	srand((unsigned)time(NULL));
-	m_iKeystates = SDL_GetKeyboardState(nullptr);
+	
 	m_bRunning = true;
 	return true;
 }
@@ -127,35 +145,14 @@ bool Game::Running()
 	return m_bRunning;
 }
 
-bool Game::KeyDown(SDL_Scancode c)
-{
-	if (m_iKeystates != nullptr)
-	{
-		if (m_iKeystates[c] == 1)
-			return true;
-		else
-			return false;
-	}
-	return false;
-}
-
 void Game::Update()
 {
-	StateMachine::Instance()->Update();	
+	StateMachine::Instance().Update();	
 }
 
 void Game::HandleEvents()
 {
-	SDL_Event event;
-	if (SDL_PollEvent(&event))
-	{
-		switch (event.type)
-		{
-		case SDL_QUIT:
-			m_bRunning = false;
-			break;
-		}
-	}
+	CommandHandler::Instance()->HandleEvents();
 }
 
 void Game::Wake()
@@ -173,7 +170,7 @@ void Game::Sleep()
 
 void Game::Render()
 {
-	StateMachine::Instance()->Render();
+	StateMachine::Instance().Render();
 }
 
 void Game::Clean()

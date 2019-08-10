@@ -1,36 +1,64 @@
 #include <typeinfo>
 #include "StateMachine.hpp"
+#include "Sprite.hpp"
 
-StateMachine* StateMachine::Instance() {
+StateMachine& StateMachine::Instance() {
 
 	static StateMachine* instance = new StateMachine();
-	return instance;
+	return *instance;
 }
 
 StateMachine::StateMachine() {
 	m_vStates.reserve(1);
+	m_innerState = TITLE;
+	PushState(new TitleState);
 }
 
 StateMachine::compl StateMachine() {
 	Clean();
 }
 
-bool StateMachine::RequestStateChange(State* state) {
+bool StateMachine::RequestStateChange(void* toState) {
 	//I'm implementing a couple checks here
 	//the idea was to also check whether the system is requiring that a same state be pushed
+	//dereferencing for comparison
+
+	MachineStates* placeHolder = static_cast<MachineStates*>(toState);
+
+	if (*(MachineStates*)toState == m_innerState) return false; //will not change to same state
+
 	if (!m_vStates.empty()) {
-		if(typeid(*(m_vStates.back())) == typeid(GameState) 
-			&& typeid(*(state)) == typeid(PauseState)) {
-			PushState(state);
-		}
-		else {
+		switch (*(MachineStates*)toState) {
+		case TITLE:
+			PushState(new TitleState);
+			break;
+		case MENU:
 			DestroyState();
-			PushState(state);
+			PushState(new MenuState);
+			break;
+		case GAME:
+			DestroyState();
+			//if the game was paused, resume
+			if (typeid(*(m_vStates.back())) == typeid(GameState)) m_vStates.back()->Resume();
+			else PushState(new GameState);
+			break;
+		case PAUSE:
+			if (typeid(*(m_vStates.back())) == typeid(GameState)) PushState(new PauseState);
+			break;
+		case LOSE:
+			DestroyState();
+			PushState(new LoseState);
+			break;
+		case QUIT:
+			Clean();
+			break;
+		default:
+			return false;
 		}
-		return true;
 	}
-	else {
-		PushState(state); return true;
+	else { 
+		PushState(new TitleState);
+		return true;
 	}
 }
 

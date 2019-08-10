@@ -9,7 +9,6 @@ private:
 	bool m_bGotTick;
 	SDL_Window* m_pWindow;
 	SDL_Renderer* m_pRenderer;
-	const Uint8* m_iKeystates;
 	Uint32 m_start, m_end, m_delta, m_fps;
 
 	// Create (number visible +1) objects for each background.
@@ -27,8 +26,8 @@ private:
 
 public:
 	static Game* Instance();
+	void Quit() { m_bRunning = false; }
 	void Run(const char*, int, int, int, int, int);
 	SDL_Window* GetWindow() { return m_pWindow; }
 	SDL_Renderer* GetRenderer() { return m_pRenderer; }
-	bool KeyDown(SDL_Scancode c);
 };

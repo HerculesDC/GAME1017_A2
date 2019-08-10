@@ -1,7 +1,6 @@
 #include "MessageFactory.hpp"
 #include "Game.h"
 
-
 MessageFactory* MessageFactory::Instance() {
 
 	static MessageFactory* instance = new MessageFactory();
@@ -28,17 +27,12 @@ void MessageFactory::SetColor(int _r, int _g, int _b, int _a) {
 	m_color.a = _a;
 }
 
+void MessageFactory::SetColor(SDL_Color c) {
+	m_color = c;
+}
+
 SDL_Texture* MessageFactory::Export(const char* input) {
 
-	SDL_Rect tempRect;
-	tempRect.x = 50;
-	tempRect.y = 200;
-
-	TTF_SizeText(m_pFont, input, &tempRect.y, &tempRect.h);
-
-	SDL_Surface* tempSurf = TTF_RenderText_Solid(m_pFont, input, m_color);
-	SDL_Texture* tempTex = SDL_CreateTextureFromSurface(Game::Instance()->GetRenderer(), tempSurf);
-	SDL_FreeSurface(tempSurf);
-
-	return tempTex;
+	//TTF_RenderText_Solid returns a pointer to a surface (made with the font, text, and color), which is used to create the texture.
+	return SDL_CreateTextureFromSurface(Game::Instance()->GetRenderer(), TTF_RenderText_Solid(m_pFont, input, m_color));
 }
