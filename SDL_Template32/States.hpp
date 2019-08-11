@@ -72,6 +72,9 @@ class PauseState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+		
+	private:
+		std::vector<Button*> m_vButtons;
 };
 
 class LoseState : public State {
@@ -85,4 +88,7 @@ public:
 	void Pause() final override;
 	void Resume() final override;
 	void Exit() final override;
+
+	private:
+		std::vector<Button*> m_vButtons;
 };

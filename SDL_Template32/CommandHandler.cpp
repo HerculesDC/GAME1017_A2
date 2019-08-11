@@ -2,10 +2,13 @@
 #include "StateMachine.hpp"
 #include "Game.h"
 
-bool StateChangeCommand::Execute(void * exec) { return StateMachine::Instance().RequestStateChange(exec); }
+bool StateChangeCommand::Execute(void* exec) { return StateMachine::Instance().RequestStateChange(exec); }
 
 bool QuitCommand::Execute(void* exec) { Game::Instance()->Quit(); return false; }
 
+bool KeyCommand::Execute(void* exec) { //looks a bit ugly, though...
+	return CommandHandler::Instance()->GetKeyDown(*(static_cast<SDL_Scancode*>(exec)));
+}
 
 CommandHandler* CommandHandler::Instance() {
 
@@ -17,10 +20,12 @@ Command* CommandHandler::IssueCommand() {
 	return nullptr;
 }
 
-CommandHandler::CommandHandler() : m_pMouse(nullptr), m_piKeyStates(nullptr) {}
+CommandHandler::CommandHandler() : m_piKeyStates(SDL_GetKeyboardState(nullptr)), 
+								   m_Mouse({ 0,0 }), m_pMouseButton(nullptr),
+								   m_pMouseMotion(nullptr)
+{}
 
 CommandHandler::compl CommandHandler() {
-	m_pMouse = nullptr;
 	m_piKeyStates = SDL_GetKeyboardState(nullptr);
 }
 
@@ -36,14 +41,9 @@ bool CommandHandler::GetKeyDown(SDL_Scancode c)
 	return false;
 }
 
-const SDL_MouseButtonEvent* CommandHandler::GetMouse() {
-	if (m_pMouse) return m_pMouse;
-	else return nullptr;
-}
-
 #include "Game.h"
 void CommandHandler::HandleEvents() {
-	
+		
 	SDL_Event evt;
 	if (SDL_PollEvent(&evt))
 	{
@@ -54,10 +54,12 @@ void CommandHandler::HandleEvents() {
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
-			m_pMouse = new SDL_MouseButtonEvent(evt.button);
+			m_pMouseButton = new SDL_MouseButtonEvent(evt.button);
+			SDL_GetMouseState(&m_Mouse.x, &m_Mouse.y);
 			break;
 		case SDL_MOUSEMOTION: //verify
-			m_pMotion = new SDL_MouseMotionEvent(evt.motion);
+			m_pMouseMotion = new SDL_MouseMotionEvent(evt.motion);
+			SDL_GetMouseState(&m_Mouse.x, &m_Mouse.y);
 			break;
 		}
 	}

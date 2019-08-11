@@ -2,7 +2,9 @@
 #include <vector>
 #include "States.hpp"
 
-enum MachineStates {TITLE, MENU, GAME, PAUSE, LOSE, QUIT};
+//it's preferrable to use enum classes and define them using scope resolution upon usage
+//but I'm using a plain enum, for simplicity
+enum MachineStates {TITLE = 0, MENU, GAME, PAUSE, LOSE, QUIT};
 
 class StateMachine {
 	public:

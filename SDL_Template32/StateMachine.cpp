@@ -1,3 +1,4 @@
+#include <iostream>
 #include <typeinfo>
 #include "StateMachine.hpp"
 #include "Sprite.hpp"
@@ -19,17 +20,15 @@ StateMachine::compl StateMachine() {
 }
 
 bool StateMachine::RequestStateChange(void* toState) {
-	//I'm implementing a couple checks here
-	//the idea was to also check whether the system is requiring that a same state be pushed
-	//dereferencing for comparison
 
-	MachineStates* placeHolder = static_cast<MachineStates*>(toState);
+	//dangerous, I know, but it's the only way I found
+	MachineStates* placeholder = static_cast<MachineStates*>(toState);
 
 	if (!m_vStates.empty()) {
 
 		if (*(MachineStates*)toState == m_innerState) return false; //will not change to same state
 
-		switch (*(MachineStates*)toState) {
+		switch (*placeholder) {
 		case TITLE:
 			m_innerState = TITLE;
 			PushState(new TitleState);
@@ -42,16 +41,19 @@ bool StateMachine::RequestStateChange(void* toState) {
 		case GAME:
 			DestroyState();
 			if (m_vStates.empty()) {
-				m_innerState = GAME;
 				PushState(new GameState);
+				m_innerState = GAME;
 			}
-			else { 
-				if (typeid(*(m_vStates.back())) == typeid(GameState)) m_vStates.back()->Resume();
+			else if (typeid(*(m_vStates.back())) == typeid(GameState)) {
+				m_vStates.back()->Resume();
 			}
 			break;
 		case PAUSE:
 			m_innerState = PAUSE;
-			if (typeid(*(m_vStates.back())) == typeid(GameState)) PushState(new PauseState);
+			if (typeid(*(m_vStates.back())) == typeid(GameState)) { 
+				m_vStates.back()->Pause();
+				PushState(new PauseState);
+			}
 			break;
 		case LOSE:
 			DestroyState();
@@ -65,6 +67,8 @@ bool StateMachine::RequestStateChange(void* toState) {
 		default:
 			return false;
 		}
+
+		std::cout << m_vStates.size() << std::endl;
 	}
 	else { 
 		PushState(new TitleState);
@@ -72,22 +76,21 @@ bool StateMachine::RequestStateChange(void* toState) {
 	}
 }
 
-void StateMachine::Update() {
-	if (!m_vStates.empty()) m_vStates.back()->Update();
-}
+void StateMachine::Update() { if (!m_vStates.empty()) m_vStates.back()->Update(); }
 
 void StateMachine::Render() {
+	//the whole function operates on the assumption that, if the state machine isn't empty, render all states in order
 	if (!m_vStates.empty()) {
-		//this is me, just trying to fancify the code...
-		//I'm also assuming that if there's a pause, there's necessarily something underneath
-		std::vector<State*>::reverse_iterator it = m_vStates.rbegin();
-
-		if (typeid(*(*it)) == typeid(PauseState)) {
-			//++it;
-			(*++it)->Render();
-			--it;
+		m_vStates.shrink_to_fit();
+		/*
+		if (typeid(*(m_vStates.back())) == typeid(PauseState)) {
+			for (int i = 0; i < m_vStates.size(); ++i) {
+				m_vStates[i]->Render();
+			}
 		}
-		(*it)->Render();
+		else m_vStates.back()->Render();
+		*/
+		for (int i = 0; i < m_vStates.size(); ++i) m_vStates[i]->Render();
 	}
 }
 

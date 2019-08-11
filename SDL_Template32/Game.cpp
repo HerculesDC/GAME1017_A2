@@ -8,7 +8,7 @@
 #include "States.hpp"
 #include "CommandHandler.hpp"
 
-#define FPS 60
+#define FPS 60 //60 causes flickering
 using namespace std;
 using namespace chrono;
 
@@ -114,10 +114,12 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//9
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("CHARACTER  SELECT"));		//10
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//11
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//12
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//13
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//14
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("back"));					//11
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//12
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//13
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//14
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//15
+			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//16
 		}
 		else { 
 			
