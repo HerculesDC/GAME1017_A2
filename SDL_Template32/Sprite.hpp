@@ -7,7 +7,8 @@
 
 class Sprite { //maybe define an overridable render function...
 	public:
-		Sprite(int index = 0, SDL_Rect source = { 0, 0, 0, 0 }, SDL_Rect destination = { 0, 0, 0, 0 });
+		//the Sprites (should) know where to retrieve their own images
+		Sprite(int index = 0, SDL_Rect destination = { 0, 0, 0, 0 }, SDL_Rect source = { 0, 0, 0, 0 });
 		virtual compl Sprite();
 		virtual SDL_Rect GetSrc() const { return m_rSrc; }
 		virtual SDL_Rect GetDst() const { return m_rDst; }
@@ -18,9 +19,12 @@ class Sprite { //maybe define an overridable render function...
 		virtual SDL_Rect* GetDstP() { return &m_rDst; }
 
 		//requires a method for setting the source as well...
+		virtual void SetSource(SDL_Rect srcRect);
 		virtual void SetDest(SDL_Rect destRect);
 
-		virtual void Update() {/*empty method for overriding*/}
+		virtual void SetSpeed(int i) {/*empty method for overriding*/}
+		
+		virtual void Update() {/*empty method for overriding*/ }
 		virtual void Render();
 
 	protected:
@@ -52,13 +56,16 @@ class Button : public Sprite { //OBS: thinking of creating an "animated button" 
 
 class Background : public Sprite {
 	public:
-		Background();
+		Background(int index = 3, SDL_Rect destination = { 0, 0, 0, 0 }, SDL_Rect source = { 0, 0, 0, 0 }, int speed = 0);
 		compl Background();
 		
+		virtual void SetDest(SDL_Rect destination) override;
+
 		virtual void Update() override;
 		virtual void Render() override;
+		virtual void SetSpeed(int newSpeed) override;
 
 	private:
-		//To decide: implementing a private Reset() function;
-		int m_iSpeed;
+		void Reset();
+		int m_iSpeed, m_iStartX;
 };

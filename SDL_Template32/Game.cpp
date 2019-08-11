@@ -8,7 +8,7 @@
 #include "States.hpp"
 #include "CommandHandler.hpp"
 
-#define FPS 60 //60 causes flickering
+#define FPS 30 //60 causes flickering during pause, probably due to update/render times
 using namespace std;
 using namespace chrono;
 

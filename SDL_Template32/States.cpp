@@ -1,3 +1,4 @@
+#include <iostream>
 #include "States.hpp"
 #include "Game.h"
 #include "Managers.hpp"
@@ -8,34 +9,69 @@
 State::State() {}
 State::compl State() {}
 
-void State::Render() { SDL_RenderPresent(Game::Instance()->GetRenderer()); }
+void State::Update() {
+
+	if (!m_vSprites.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
+			(*it)->Update();
+		}
+	}
+}
+
+void State::Render() { 
+
+		//this makes all of the sprites(and subclasses) be rendered accordingly.
+		//I'm relying on their inheritance to achieve proper behavior
+		//And since this function is overridable, I don't have to worry reimplementing this sort of stuff
+	if (!m_vSprites.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
+			(*it)->Render();
+		}
+	}
+	SDL_RenderPresent(Game::Instance()->GetRenderer());
+}
 
 //Inherited classes:
 //	-> Title
 TitleState::TitleState() {
-	m_vButtons.reserve(1);
+	m_vSprites.reserve(1);
 }
 TitleState::compl TitleState() {}
 
-//requires the use of the <functional> header... check
 void TitleState::Enter() {
+	std::cout << "enter title" << std::endl;
+
+	SDL_Rect* temp = nullptr;
+	//6: Title Text
+	temp = TextureManager::Instance()->GetSize(6, 50, 75);
+	m_vSprites.push_back(new Sprite(6, *temp));
+	
+	//7: Subtitle Text
+	temp = TextureManager::Instance()->GetSize(7, 25, 150);
+	m_vSprites.push_back(new Sprite(7, *temp));
+
+	//8: Play text
+	temp = TextureManager::Instance()->GetSize(8, 300, 400);
+	m_vSprites.push_back(new Sprite(8, *temp));
+
+	//9: Quit text
+	temp = TextureManager::Instance()->GetSize(9, 550, 400);
+	m_vSprites.push_back(new Sprite(9, *temp));
+
 	//manually setting buttons for now
 	Command* c = new StateChangeCommand;
-	m_vButtons.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1)); //1: play button image
-
-	SDL_Rect* temp = TextureManager::Instance()->GetSize(1, 300, 500);
-	m_vButtons.back()->SetDest(*temp);
+	temp = TextureManager::Instance()->GetSize(1, 300, 500);
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1)); //1: play button image
+	m_vSprites.back()->SetDest(*temp);
 
 	Command* q = new QuitCommand;
-	m_vButtons.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
 	temp = TextureManager::Instance()->GetSize(2, 565, 500);
-	m_vButtons.back()->SetDest(*temp);
+	m_vSprites.back()->SetDest(*temp);
 }
 
-
-void TitleState:: Update() {
-
-	for (std::vector<Button*>::iterator it = m_vButtons.begin(); it != m_vButtons.end(); it++) (*it)->Update();
+void TitleState:: Update() {  //Other functionality goes here
+	State::Update();
 }
 
 void TitleState::Render() {
@@ -43,31 +79,16 @@ void TitleState::Render() {
 	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
 	SDL_RenderClear(Game::Instance()->GetRenderer());
 	
-	// Now render the backgrounds. Passing null pointers to use the entire screen
+
+	//I treated this one background differently. Passing null pointers to use the entire screen
 	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
-
-	// Texts
-	SDL_Rect * temp = TextureManager::Instance()->GetSize(6, 50, 75);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(6), nullptr, temp);
 	
-	temp = TextureManager::Instance()->GetSize(7, 25, 150);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(7), nullptr, temp);
-
-	temp = TextureManager::Instance()->GetSize(8, 300, 400);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(8), nullptr, temp);
-
-	temp = TextureManager::Instance()->GetSize(9, 550, 400);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(9), nullptr, temp);
-
-	//Button
-	for (std::vector<Button*>::iterator it = m_vButtons.begin(); it != m_vButtons.end(); it++) (*it)->Render();
-
 	State::Render();
 }
 
-void TitleState::Pause() {}
-void TitleState::Resume(){}
-void TitleState::Exit() {}
+void TitleState::Pause() { std::cout << "pause title" << std::endl; }
+void TitleState::Resume() { std::cout << "resume title" << std::endl; }
+void TitleState::Exit() { std::cout << "exit title" << std::endl;  }
 
 //Inherited classes:
 //	-> Menu
@@ -76,7 +97,9 @@ void TitleState::Exit() {}
 MenuState::MenuState() {}
 MenuState::compl MenuState() {}
 
-void MenuState::Update() {}
+void MenuState::Enter() { std::cout << "enter menu" << std::endl; }
+
+void MenuState::Update() { State::Update(); }
 
 void MenuState::Render() {
 
@@ -89,22 +112,62 @@ void MenuState::Render() {
 	State::Render();
 }
 
-void MenuState::Enter() {}
-void MenuState::Pause() {}
-void MenuState::Resume() {}
-void MenuState::Exit() {}
+
+void MenuState::Pause() { std::cout << "pause menu" << std::endl; }
+void MenuState::Resume() { std::cout << "resume menu" << std::endl; }
+void MenuState::Exit() { std::cout << "exit menu" << std::endl; }
 
 //Inherited classes:
 //	-> Game
 GameState::GameState() {}
 GameState::compl GameState() {}
 
-void GameState::Update() {//OBS: The State Machine handles the pause
-	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_SPACE)) StateMachine::Instance().RequestStateChange(new MachineStates(PAUSE));
+void GameState::Enter() {
+	std::cout << "enter game" << std::endl;
+	//Scenery setup:
+	int tempIndex = 3; //index common to backgrounds
+
+	//Background specs
+	int tempSpeed = 2; //I halved the framerate, so I'm doubling the speeds
+	SDL_Rect tempSrc  = {0, 0, 1024, 768};
+	SDL_Rect tempDest = {0, 0, 1024, 768};
+	
+	for (int i = 0; i < 2; ++i) {
+		tempDest.x = i * tempDest.w;
+		m_vSprites.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
+	}
+	
+	tempSpeed = 6;
+	tempSrc  = {1024, 0, 256, 512};
+	tempDest = {   0, 0, 256, 512};
+	
+	for (int i = 0; i < 5; ++i) {
+		tempDest.x = i * tempDest.w;
+		m_vSprites.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
+	}
+
+	tempSpeed = 6;
+	tempSrc  = { 1024, 512, 512, 256};
+	tempDest = {    0, 512, 512, 256};
+
+	for (int i = 0; i < 3; ++i) {
+		tempDest.x = i * tempDest.w;
+		m_vSprites.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
+	}
+
+	//because Obstacles and Player will be different kinds of objects, 
+	//	they can't be initialized into the Sprite vector
+
 }
 
-void GameState::Enter() {
-
+void GameState::Update() {//OBS: The State Machine handles the pause
+	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_SPACE)) 
+		StateMachine::Instance().RequestStateChange(new MachineStates(PAUSE));
+	if (!m_vSprites.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
+			(*it)->Update();
+		}
+	}
 }
 
 void GameState::Render() {
@@ -114,12 +177,11 @@ void GameState::Render() {
 	State::Render();
 }
 
-void GameState::Pause() {
-	
-}
+void GameState::Pause() { std::cout << "pause game" << std::endl; }
 
-void GameState::Resume() {}
-void GameState::Exit() {}
+void GameState::Resume() { std::cout << "resume game" << std::endl; }
+
+void GameState::Exit() { std::cout << "exiting game" << std::endl; }
 
 bool GameState::CheckCollision(SDL_Rect bound1, SDL_Rect bound2) { return false; }
 
@@ -129,30 +191,46 @@ PauseState::PauseState() {}
 PauseState::compl PauseState() {}
 
 void PauseState::Enter() {
-	//may be the case to mix buttons and 
-	//manually setting buttons for now
-	//include stuff on sprite constructors to enable taking the temp as a parameter already, 
-	//instead of setting the destination separately. In all cases, it can be set again later
-	//maybe prepare the buttons on Enter
+	std::cout << "enter pause" << std::endl;
 
+	m_vSprites.push_back(new Sprite(1, { 0, 0, 0, 0 }));
+
+	SDL_Rect* temp = nullptr;
+	//12: Pause Text
+	temp = TextureManager::Instance()->GetSize(12, 350, 75);
+	m_vSprites.push_back(new Sprite(12, *temp));
+
+	//13: Resume Text
+	temp = TextureManager::Instance()->GetSize(13, 200, 400);
+	m_vSprites.push_back(new Sprite(13, *temp));
+
+	//1: play button image
 	Command* c = new StateChangeCommand;
-	m_vButtons.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1)); //1: play button image
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1));
+	temp = TextureManager::Instance()->GetSize(1, 200, 500);
+	m_vSprites.back()->SetDest(*temp);
 
-	SDL_Rect* temp = TextureManager::Instance()->GetSize(1, 300, 500);
-	m_vButtons.back()->SetDest(*temp);
+	//16: Title Text
+	temp = TextureManager::Instance()->GetSize(16, 500, 400);
+	m_vSprites.push_back(new Sprite(16, *temp));
+
+	//1: Play button image. Will implement proper button if I have the time
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), 1));
+	temp = TextureManager::Instance()->GetSize(1, 800, 500);
+	m_vSprites.back()->SetDest(*temp);
+
+	//9: Quit Text
+	temp = TextureManager::Instance()->GetSize(9, 750, 400);
+	m_vSprites.push_back(new Sprite(9, *temp));
 
 	//this begets a new command, actually...
 	Command* q = new QuitCommand;
-	m_vButtons.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 565, 500);
-	m_vButtons.back()->SetDest(*temp);
-
-	m_vButtons.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 565, 500);
-	m_vButtons.back()->SetDest(*temp);
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
+	temp = TextureManager::Instance()->GetSize(2, 500, 500);
+	m_vSprites.back()->SetDest(*temp);
 }
 
-void PauseState::Update() {}
+void PauseState::Update() { State::Update(); }
 
 void PauseState::Render() {
 	//requires setting blend mode because it's a semitransparent overlay
@@ -161,22 +239,12 @@ void PauseState::Render() {
 	//we want to render an overlay, not clear the screen
 	SDL_RenderFillRect(Game::Instance()->GetRenderer(), nullptr);
 
-	//something tells me that declaring these variables here causes the flickering
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(11), nullptr, TextureManager::Instance()->GetSize(11, 50, 75));
-	
-	//FOR THE BUTTONS. Texts are "Resume"(13), "Main Menu"(16), and "Quit"(9)
-	//REPOSITION!!!
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(13), nullptr, TextureManager::Instance()->GetSize(13, 25, 150));
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(16), nullptr, TextureManager::Instance()->GetSize(16, 300, 400));
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(9), nullptr, TextureManager::Instance()->GetSize(9, 550, 400));
-
 	State::Render();
 }
 
-
-void PauseState::Pause() {}
-void PauseState::Resume() {}
-void PauseState::Exit() {}
+void PauseState::Pause() { std::cout << "pause pause" << std::endl; }
+void PauseState::Resume() { std::cout << "resume pause" << std::endl; }
+void PauseState::Exit() { std::cout << "exit pause" << std::endl; }
 
 //Inherited classes:
 //	-> Lose
@@ -184,34 +252,22 @@ void PauseState::Exit() {}
 LoseState::LoseState() {}
 LoseState::compl LoseState() {}
 
-void LoseState::Enter() {}
+void LoseState::Enter() { std::cout << "enter lose" << std::endl; }
 
-void LoseState::Update() {}
+void LoseState::Update() {
+	State::Update();
+}
 
 void LoseState::Render() {
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 127, 50, 50, 255);
-	SDL_RenderClear(Game::Instance()->GetRenderer());
-
-	// Lose Text
-	SDL_Rect* temp = TextureManager::Instance()->GetSize(11, 50, 75);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(11), nullptr, temp);
-
-
-	//FOR THE BUTTONS: "retry"(15), "title"(16), and "quit"(9)
-	//REPOSITION!!! => OBS.: May benefit from the pause menu implementation for its layout...
-	temp = TextureManager::Instance()->GetSize(15, 25, 150);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(15), nullptr, temp);
-
-	temp = TextureManager::Instance()->GetSize(16, 300, 400);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(16), nullptr, temp);
-
-	temp = TextureManager::Instance()->GetSize(9, 550, 400);
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(9), nullptr, temp);
+	//requires setting blend mode because it's a semitransparent overlay
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 0, 0, 150);
+	SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
+	SDL_RenderFillRect(Game::Instance()->GetRenderer(), nullptr);
 
 	State::Render();
 }
 
 
-void LoseState::Pause() {}
-void LoseState::Resume() {}
-void LoseState::Exit() {}
+void LoseState::Pause() { std::cout << "pause lose" << std::endl; }
+void LoseState::Resume() { std::cout << "resume lose" << std::endl; }
+void LoseState::Exit() { std::cout << "exit lose" << std::endl; }

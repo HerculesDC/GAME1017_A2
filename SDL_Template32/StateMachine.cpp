@@ -67,7 +67,6 @@ bool StateMachine::RequestStateChange(void* toState) {
 		default:
 			return false;
 		}
-
 		std::cout << m_vStates.size() << std::endl;
 	}
 	else { 
@@ -79,17 +78,10 @@ bool StateMachine::RequestStateChange(void* toState) {
 void StateMachine::Update() { if (!m_vStates.empty()) m_vStates.back()->Update(); }
 
 void StateMachine::Render() {
-	//the whole function operates on the assumption that, if the state machine isn't empty, render all states in order
+	//the whole function operates on the assumption that, 
+	//if the state machine isn't empty, render all states in order
 	if (!m_vStates.empty()) {
 		m_vStates.shrink_to_fit();
-		/*
-		if (typeid(*(m_vStates.back())) == typeid(PauseState)) {
-			for (int i = 0; i < m_vStates.size(); ++i) {
-				m_vStates[i]->Render();
-			}
-		}
-		else m_vStates.back()->Render();
-		*/
 		for (int i = 0; i < m_vStates.size(); ++i) m_vStates[i]->Render();
 	}
 }

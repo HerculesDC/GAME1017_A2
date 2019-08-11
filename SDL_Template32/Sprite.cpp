@@ -5,11 +5,19 @@
 #include "Managers.hpp"
 #include "CommandHandler.hpp"
 
-Sprite::Sprite(int index, SDL_Rect src, SDL_Rect dest) : m_iIndex(index), m_rSrc(src), m_rDst(dest) {
-
+Sprite::Sprite(int index, SDL_Rect dest, SDL_Rect src) : m_iIndex(index), m_rDst(dest), m_rSrc(src) {
+	//sets destination first to make positioning easier within the constructor
 }
 
 Sprite::compl Sprite() {}
+
+void Sprite::SetSource(SDL_Rect srcRect) {
+
+	m_rSrc.x = srcRect.x;
+	m_rSrc.y = srcRect.y;
+	m_rSrc.w = srcRect.w;
+	m_rSrc.h = srcRect.h;
+}
 
 void Sprite::SetDest(SDL_Rect destRect) {
 
@@ -53,12 +61,9 @@ void Button::Update() {
 					OnClick(m_cAddress, m_pParam);
 				}
 			}
-			
 		}
 		else m_innerState = MOUSEUP;
-		
 	}
-	//else m_innerState = MOUSEUP;
 }
 
 void Button::Render() {
@@ -71,16 +76,28 @@ void Button::Render() {
 	Sprite::Render();
 }
 
-Background::Background(): m_iSpeed(0){}
+Background::Background(int index, SDL_Rect destination, SDL_Rect source, int speed) 
+					  : Sprite(index, destination, source), 
+						m_iSpeed(speed), m_iStartX(destination.x)
+{}
 
 Background::compl Background() {}
 
+void Background::SetDest(SDL_Rect destination) {
+	Sprite::SetDest(destination);
+	m_iStartX = destination.x;
+}
+
+void Background::SetSpeed(int newSpeed) { m_iSpeed = newSpeed; }
+
 void Background::Update() {
 	m_rDst.x -= m_iSpeed;
-	//if (m_rDst.x <= -m_rDst.w)Reset();
+	if (m_rDst.x <= m_iStartX-m_rDst.w) Reset();
 }
+
+void Background::Reset() { m_rDst.x = m_iStartX; }
 
 void Background::Render() {
 	//retrieves the Backgrounds image
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(3), &m_rSrc, &m_rDst);
+	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), &m_rSrc, &m_rDst);
 }

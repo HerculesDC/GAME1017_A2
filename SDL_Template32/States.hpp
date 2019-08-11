@@ -1,18 +1,22 @@
 #pragma once
 #include <vector>
 #include "SDL.h"
+class Sprite;
 class Button;
 
 class State{
 	public:
 		State();
 		virtual compl State();
-		virtual void Update() = 0;
+		virtual void Update(); //NOT ABSTRACT
 		virtual void Render(); //NOT ABSTRACT!!!
 		virtual void Enter() = 0;
 		virtual void Pause() = 0;
 		virtual void Resume() = 0;
 		virtual void Exit() = 0;
+
+	protected:
+		std::vector<Sprite*> m_vSprites;
 };
 
 class TitleState : public State {
@@ -26,9 +30,6 @@ class TitleState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
-
-	private:
-		std::vector<Button*> m_vButtons;
 };
 
 class MenuState : public State {
@@ -72,9 +73,6 @@ class PauseState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
-		
-	private:
-		std::vector<Button*> m_vButtons;
 };
 
 class LoseState : public State {
@@ -88,7 +86,4 @@ public:
 	void Pause() final override;
 	void Resume() final override;
 	void Exit() final override;
-
-	private:
-		std::vector<Button*> m_vButtons;
 };
