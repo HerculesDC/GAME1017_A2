@@ -2,10 +2,9 @@
 #include <functional>
 
 #include "SDL.h"
-#include "SDL_image.h"
 #include "CommandHandler.hpp"
 
-class Sprite { //maybe define an overridable render function...
+class Sprite {
 	public:
 		//the Sprites (should) know where to retrieve their own images
 		Sprite(int index = 0, SDL_Rect destination = { 0, 0, 0, 0 }, SDL_Rect source = { 0, 0, 0, 0 });
@@ -14,28 +13,25 @@ class Sprite { //maybe define an overridable render function...
 		virtual SDL_Rect GetSrc() const { return m_rSrc; }
 		virtual SDL_Rect GetDst() const { return m_rDst; }
 		
-		//Reminder: for whatever reasons, 
-		//		declaring these const doesnt work (study later)
 		virtual SDL_Rect* GetSrcP() { return &m_rSrc; }
 		virtual SDL_Rect* GetDstP() { return &m_rDst; }
 
 		virtual int GetIndex() const { return m_iIndex; }
 		virtual SDL_Texture* GetTexture();
 
-		
 		virtual void SetSource(SDL_Rect srcRect);
 		virtual void SetDest(SDL_Rect destRect);
 		virtual void SetX(int i) { m_rDst.x = i; }
+
 		virtual void SetSpeed(int i) {/*empty method for overriding*/}
+		virtual bool SetState(void* exec) { /*TO OVERRIDE!*/ return false; }
 		
 		virtual void Update() {/*empty method for overriding*/ }
 		virtual void Render();
 
 	protected:
-		//SOURCE refers to the source in the texture, 
-		//whereas Destination refers to the destination on the window
 		SDL_Rect m_rSrc, m_rDst;
-		int m_iIndex; //for retrieval purposes
+		const int m_iIndex;
 };
 
 enum ButtonState { MOUSEUP = 0, 
@@ -53,7 +49,7 @@ class Button : virtual public Sprite {
 		virtual void Update() override;
 		virtual void Render() override;
 
-	private:
+	protected:
 		bool m_bState;
 		std::function<bool(Command&, void*)> OnClick;
 		Command& m_cAddress;
@@ -64,24 +60,35 @@ class Button : virtual public Sprite {
 //The reason why I'm doing this is that I want to create an AnimatedButton,
 //but Player only needs an AnimatedSprite as a component
 //Thinking of turning this into an enum class later
-enum SpriteState {IDLING, RUNNING, JUMPING, DYING,};
+enum SpriteState {IDLING, RUNNING, JUMPING, ROLLING, DYING,};
 
-class AnimatedSprite : public virtual Sprite {
+class AnimatedSprite : public virtual Sprite { //uses player's spritesheet
 	public:
-		AnimatedSprite();
+		AnimatedSprite(int sourceIndex = 5, int playerIndex = 0);
 		virtual compl AnimatedSprite();
 
 		virtual void Update() override;
 		virtual void Render() override;
 		
 		//this one allows for "commandification" of the sprite
-		virtual bool Set(void* exec);
+		virtual bool SetState(void* exec);
+		virtual SpriteState GetCurState() const { return m_sCurState; }
 
 	protected: //Unrelated classes shouldn't access Animate(), except through Update()
 		virtual void Animate();
 
 	protected:
-		SpriteState currentState;
+		//Animated sprite initial info
+		const int m_iSpriteSize;
+		const int m_iSpriteBase; //0 for GSamus, 1 for GSonic, 3 for GBill (is this the guy from Contra?)
+
+		//Animated sprite animation-specific info
+		SpriteState m_sCurState;
+		int m_iCurSprite,
+			m_iMinSprite,
+			m_iMaxSprite,
+			m_iCurFrame,
+			m_iMaxFrame;
 };
 
 class Background : public Sprite {

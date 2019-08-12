@@ -5,7 +5,8 @@
 #include "CommandHandler.hpp"
 
 Sprite::Sprite(int index, SDL_Rect dest, SDL_Rect src) : m_iIndex(index), m_rDst(dest), m_rSrc(src) {
-	//sets destination first to make positioning easier within the constructor
+	//sets destination first to make positioning easier within the constructor. 
+	//Source can be a zero rectangle by default
 }
 
 Sprite::compl Sprite() {}
@@ -84,6 +85,91 @@ void Button::Render() {
 		SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rDst);
 	}
 	Sprite::Render();
+}
+
+AnimatedSprite::AnimatedSprite(int index, int playerChoice) : 
+	Sprite(index),
+	m_iSpriteBase(playerChoice % 3), //ensures it's a valid part of the sprite
+	m_sCurState(IDLING), 
+	m_iSpriteSize(128)
+{
+	//I'm aware it's inherited, but using a function call felt clearer
+	SetSource({0, 2*m_iSpriteBase*m_iSpriteSize, m_iSpriteSize, m_iSpriteSize});
+}
+
+AnimatedSprite::compl AnimatedSprite() {}
+
+void AnimatedSprite::Animate() {
+
+	m_iCurFrame++;
+	if (m_iCurFrame == m_iMaxFrame) {
+
+		m_iCurFrame = 0;
+		m_iCurSprite++;
+
+		if (m_iCurSprite == m_iMaxSprite)
+			m_iCurSprite = m_iMinSprite;
+	}
+	m_rSrc.x = m_rSrc.w * m_iCurSprite;
+}
+
+bool AnimatedSprite::SetState(void* state) {
+	
+	SpriteState* targetState = static_cast<SpriteState*>(state);
+
+	m_iCurFrame = 0; //took this assignment as it's common to all states
+
+	//OBS: MaxFrames are halved due to halved framerate
+	switch (*targetState) {
+		case IDLING:
+			m_sCurState = IDLING;
+			m_iMaxFrame = 1;
+			m_iCurSprite = m_iMinSprite = 0;
+			m_iMaxSprite = 1;
+			m_rSrc.y = m_iSpriteBase * 2 * m_iSpriteSize;
+			return true;
+		case RUNNING:
+			m_sCurState = RUNNING;
+			m_iMaxFrame = 3;
+			m_iCurSprite = m_iMinSprite = 0;
+			m_iMaxSprite = 8;
+			m_rSrc.y = m_iSpriteBase * 2 * m_iSpriteSize;
+			return true;
+		case JUMPING:
+			m_sCurState = JUMPING;
+			m_iMaxFrame = 1;
+			m_iCurSprite = m_iMinSprite = 8;
+			m_iMaxSprite = 9;
+			m_rSrc.y = m_iSpriteBase * 2 * m_iSpriteSize;
+			return true;
+		case ROLLING:
+			m_sCurState = ROLLING;
+			m_iMaxFrame = 3;
+			m_iCurSprite = m_iMinSprite = 0;
+			m_iMaxSprite = 4;
+			m_rSrc.y = m_iSpriteSize + (m_iSpriteBase * 2 * m_iSpriteSize);
+			return true;
+		case DYING:
+			m_sCurState = DYING;
+			m_iMaxFrame = 6;
+			m_iCurSprite = m_iMinSprite = 4;
+			m_iMaxSprite = 9;
+			//there's a counter for this one, but I'm not 100% sure why... yet
+			m_rSrc.y = m_iSpriteSize + (m_iSpriteBase * 2 * m_iSpriteSize);
+			return true;
+		default:
+			return false;
+	}
+	return false;
+}
+
+void AnimatedSprite::Update() {
+	//not sure whether there should be other stuff here for now
+	Animate();
+}
+
+void AnimatedSprite::Render() {
+	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), &m_rSrc, &m_rDst);
 }
 
 Background::Background(int index, SDL_Rect destination, SDL_Rect source, int speed) 

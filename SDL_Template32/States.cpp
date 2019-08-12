@@ -60,6 +60,15 @@ void TitleState::Enter() {
 	temp = TextureManager::Instance()->GetSize(9, 550, 400);
 	m_vSprites.push_back(new Sprite(9, *temp));
 
+	/*
+	 * ANIMATION TEST (PASSED)
+	//5:Player sprite for test
+	m_vSprites.push_back(new AnimatedSprite(5, 2));
+	//this is just for test for now
+	m_vSprites.back()->SetDest({(1024/2)-64,(768/2)-64, 128, 128});
+	m_vSprites.back()->SetState(new SpriteState(DYING));
+	*/
+
 	//manually setting buttons for now
 	Command* c = new StateChangeCommand;
 	temp = TextureManager::Instance()->GetSize(1, 300, 500);
@@ -182,7 +191,7 @@ void GameState::Enter() {
 
 void GameState::Update() {//OBS: The State Machine handles the pause
 	
-	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_SPACE)) 
+	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_P)) 
 		StateMachine::Instance().RequestStateChange(new MachineStates(PAUSE));
 	
 	if (!m_vSprites.empty()) {
