@@ -27,19 +27,24 @@ void Sprite::SetDest(SDL_Rect destRect) {
 	m_rDst.h = destRect.h;
 }
 
+//implemented here because other classes shouldn't have unnecessary access to texture management.
+//Ex: Obstacles indirectly retrieve that information through their sprites' indices
+SDL_Texture* Sprite::GetTexture() { return TextureManager::Instance()->Retrieve(m_iIndex); }
+
 void Sprite::Render() {
-	//CAUTIONARY: assumes rendering the whole sprite onto destination rectangle (hence source is nullptr
+	//CAUTIONARY: assumes rendering the whole sprite onto destination rectangle (hence source is nullptr)
 	//override accordingly
 	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), nullptr, &m_rDst);
 }
 
 //requires the use of the functional header: check
-Button::Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, int index): 
+Button::Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, int index, bool bState): 
 	Sprite(index),
 	m_cAddress(inCommand), 
 	OnClick(inFunction),
 	m_pParam(param), 
-	m_innerState(MOUSEUP) 
+	m_innerState(MOUSEUP),
+	m_bState(bState)
 {
 }
 
@@ -55,10 +60,16 @@ void Button::Update() {
 			if (CommandHandler::Instance()->GetMouseButton() != nullptr) {
 				if (CommandHandler::Instance()->GetMouseButton()->state == SDL_PRESSED) {
 					m_innerState = MOUSEDOWN;
+					m_bState = true;
 				}
 				if (CommandHandler::Instance()->GetMouseButton()->state == SDL_RELEASED) {
 					//this is where the command associated to the button takes effect
-					OnClick(m_cAddress, m_pParam);
+					//Note: function objects retain their "called state",
+					//		hence the need of a flag
+					if (m_bState) {
+						OnClick(m_cAddress, m_pParam);
+						m_bState = false;
+					}
 				}
 			}
 		}

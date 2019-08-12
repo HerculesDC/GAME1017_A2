@@ -95,9 +95,10 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 		}
 
 		if (AudioManager::Instance()->Init()) {
-			AudioManager::Instance()->AddMusic("Sound/Chase.mp3");
-			AudioManager::Instance()->AddMusic("Sound/Death.mp3");
-			AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav");
+			//Music and Sound Indices:
+			AudioManager::Instance()->AddMusic("Sound/Chase.mp3"); //0
+			AudioManager::Instance()->AddMusic("Sound/Death.mp3"); //1
+			AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav"); //0
 		}
 		else
 		{
@@ -108,7 +109,9 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 		if (MessageFactory::Instance()->Init()) {
 			//I planned to use a simple file parser for this, but it would introduce complications when indexing.
 			//I opted for this mostly for simplicity
-			//OBS: lowercase: full font <=> UPPERCASE: outline font											//Texture index
+			//OBS: lowercase: full font <=> UPPERCASE: outline font		
+			//Texture index
+			MessageFactory::Instance()->SetColor(255, 255, 255, 255);
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//6
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//7
 			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8

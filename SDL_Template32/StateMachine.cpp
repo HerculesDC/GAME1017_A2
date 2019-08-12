@@ -30,6 +30,7 @@ bool StateMachine::RequestStateChange(void* toState) {
 
 		switch (*placeholder) {
 		case TITLE:
+			Clean(); //requires cleaning because pause-to-title stacks states
 			m_innerState = TITLE;
 			PushState(new TitleState);
 			break;

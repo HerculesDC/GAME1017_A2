@@ -20,13 +20,13 @@
 class TextureManager {
 
 	public:
+		static TextureManager* Instance();
 		bool Init();
+
 		void Add(const char* filename);
 		void Add(SDL_Texture* texture);
 		SDL_Texture* Retrieve(int index) const;
 		SDL_Rect* GetSize(int index, int x = 0, int y = 0) const;
-
-		static TextureManager* Instance();
 
 	private:
 		TextureManager();
@@ -36,13 +36,13 @@ class TextureManager {
 
 class AudioManager {
 	public:
+		static AudioManager* Instance();
 		bool Init();
+
 		void AddMusic(const char* filename);
 		void AddChunk(const char* filename);
 		Mix_Music* GetMusic(int index) const;
 		Mix_Chunk* GetChunk(int index) const;
-
-		static AudioManager* Instance();
 
 	private:
 		AudioManager();

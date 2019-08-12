@@ -1,22 +1,38 @@
 #pragma once
 #include "Sprite.hpp"
 
+/* My plan is to transform the obstacles into "self-managing units" that know what
+ * to do and how to create themselves based solely on their own type.
+ * I plan to do this especially because the obstacles are always instantiated at the end of the
+ * obstacle vector
+ */
+
+enum class ObstacleType {EMPTY, BUZZSAW, SPIKED_FLOOR, SPIKED_WALL,};
+
 class Obstacle {
 	public:
-		Obstacle();
+		//Obstacle(ObstacleType oType = ObstacleType::EMPTY);
+		Obstacle(int xStart, int speed = 6, bool hasSprite = false, int index = 4,
+				 SDL_Rect destination = {0, 0, 0, 0}, SDL_Rect source = { 0, 0, 0, 0 },
+				 bool isPlatform = false, bool rotates = false, double rotSpeed = 5.0);
 		compl Obstacle();
 
 		int GetX() const { return m_iX; }
 		bool Rotates() const { return m_bRotates; }
 		double GetAngle() const { return m_dAngle; }
-		Sprite GetSprite() const { return m_pSprite; }
+		Sprite GetSprite() const { return *m_pSprite; }
+		Sprite* GetSpriteP() const { return m_pSprite; }
+		SDL_Rect GetCollRect() const { return m_rColl; }
+		SDL_Rect* GetCollRectP() { return &m_rColl; }
+
+		void Update();
+		void Render();
 
 	private:
-		// Verify: the fact that this has a pointer 
-		//to an abstract class may require rework
-		Sprite m_pSprite;
-		double m_dAngle;
-		int m_iX;
+		//no platforms planned for now
+		Sprite* m_pSprite;
+		SDL_Rect m_rColl; //collision rect
+		double m_dAngle, m_dRotSpeed;
+		int m_iX, m_iSpeed;
 		bool m_bRotates;
-		//will also likely require a SDL_Rect specifically for collision
 };

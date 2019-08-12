@@ -4,6 +4,9 @@
 #include "Managers.hpp"
 #include "Sprite.hpp"
 #include "StateMachine.hpp"
+#include "Obstacle.hpp"
+
+enum SoundStates { LOOP = -1, NO_LOOP, CHUNK_CHANNEL, };
 
 //base class
 State::State() {}
@@ -119,10 +122,23 @@ void MenuState::Exit() { std::cout << "exit menu" << std::endl; }
 
 //Inherited classes:
 //	-> Game
-GameState::GameState() {}
+//reversed my decision to use an enum class in this case. 
+//These values are informative, and should be readily convertible
+enum ObstacleInfo { OBST_THRESHOLD = 3, MAX_OBST = 9, OBST_SIZE = 128, };
+
+GameState::GameState() : m_iNumObst(0) {
+	m_vObstacles.reserve(MAX_OBST);
+	m_vForegrounds.reserve(3);
+}
+
 GameState::compl GameState() {}
 
 void GameState::Enter() {
+
+	//OBS: Still not sure where to put the death sound
+
+	if (!Mix_PlayingMusic()) Mix_PlayMusic(AudioManager::Instance()->GetMusic(0), LOOP);
+
 	std::cout << "enter game" << std::endl;
 	//Scenery setup:
 	int tempIndex = 3; //index common to backgrounds
@@ -152,36 +168,93 @@ void GameState::Enter() {
 
 	for (int i = 0; i < 3; ++i) {
 		tempDest.x = i * tempDest.w;
-		m_vSprites.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
+		m_vForegrounds.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
 	}
 
 	//because Obstacles and Player will be different kinds of objects, 
 	//	they can't be initialized into the Sprite vector
+	//	initialize with empty obstacles
+	for (int i = 0; i < MAX_OBST; ++i) { 
+		m_vObstacles.push_back(new Obstacle(i * OBST_SIZE));
+	}
 
+	std::cout << "Obstacles: " << m_vObstacles.size() << std::endl;
 }
 
 void GameState::Update() {//OBS: The State Machine handles the pause
+	
 	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_SPACE)) 
 		StateMachine::Instance().RequestStateChange(new MachineStates(PAUSE));
+	
 	if (!m_vSprites.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
 			(*it)->Update();
 		}
 	}
+
+	if (!m_vObstacles.empty()) {
+
+		if (m_vObstacles.front()->GetX() < -(OBST_SIZE)) {
+			delete m_vObstacles.front();
+			m_vObstacles.erase(m_vObstacles.begin());
+			if (m_iNumObst == 0) {
+				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 6, true, 4, 
+					{8* OBST_SIZE, 448, OBST_SIZE, OBST_SIZE }, { OBST_SIZE , OBST_SIZE , OBST_SIZE , OBST_SIZE },
+					false, true, 5.0));
+			}
+			else m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE));
+			
+			if (m_iNumObst == OBST_THRESHOLD) { m_iNumObst = 0; }
+			else ++m_iNumObst;
+		}
+
+		for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); it++) {
+			(*it)->Update();
+		}
+
+		for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
+			(*it)->Update();
+		}
+	}
 }
 
-void GameState::Render() {
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 0, 0, 255, 255);
+void GameState::Render() { //Can't rely on State's original rendering, due to its multilayer approach
+
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
 	SDL_RenderClear(Game::Instance()->GetRenderer());
 
-	State::Render();
+	if (!m_vSprites.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
+			(*it)->Render();
+		}
+	}
+
+	for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); it++) {
+		(*it)->Render();
+	}
+
+	for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
+		(*it)->Render();
+	}
+
+	SDL_RenderPresent(Game::Instance()->GetRenderer());
 }
 
-void GameState::Pause() { std::cout << "pause game" << std::endl; }
+void GameState::Pause() { 
+	std::cout << "pause game" << std::endl;
+	if (Mix_PlayingMusic()) Mix_PauseMusic();
+}
 
-void GameState::Resume() { std::cout << "resume game" << std::endl; }
+void GameState::Resume() { 
+	std::cout << "resume game" << std::endl;
+	if (Mix_PausedMusic()) Mix_ResumeMusic();
+	//else if (!Mix_PlayingMusic()) Mix_PlayMusic(AudioManager::Instance()->GetMusic(0), LOOP);
+}
 
-void GameState::Exit() { std::cout << "exiting game" << std::endl; }
+void GameState::Exit() { 
+	std::cout << "exiting game" << std::endl;
+	if (Mix_PlayingMusic()) Mix_HaltMusic();
+}
 
 bool GameState::CheckCollision(SDL_Rect bound1, SDL_Rect bound2) { return false; }
 
@@ -191,9 +264,10 @@ PauseState::PauseState() {}
 PauseState::compl PauseState() {}
 
 void PauseState::Enter() {
-	std::cout << "enter pause" << std::endl;
 
-	m_vSprites.push_back(new Sprite(1, { 0, 0, 0, 0 }));
+	if (Mix_PlayingMusic()) Mix_PauseMusic();
+
+	std::cout << "enter pause" << std::endl;
 
 	SDL_Rect* temp = nullptr;
 	//12: Pause Text
@@ -216,7 +290,7 @@ void PauseState::Enter() {
 
 	//1: Play button image. Will implement proper button if I have the time
 	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), 1));
-	temp = TextureManager::Instance()->GetSize(1, 800, 500);
+	temp = TextureManager::Instance()->GetSize(1, 500, 500);
 	m_vSprites.back()->SetDest(*temp);
 
 	//9: Quit Text
@@ -226,7 +300,7 @@ void PauseState::Enter() {
 	//this begets a new command, actually...
 	Command* q = new QuitCommand;
 	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 500, 500);
+	temp = TextureManager::Instance()->GetSize(2, 800, 500);
 	m_vSprites.back()->SetDest(*temp);
 }
 
@@ -234,7 +308,7 @@ void PauseState::Update() { State::Update(); }
 
 void PauseState::Render() {
 	//requires setting blend mode because it's a semitransparent overlay
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 0, 0, 50);
+	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 127, 127, 127, 50);
 	SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
 	//we want to render an overlay, not clear the screen
 	SDL_RenderFillRect(Game::Instance()->GetRenderer(), nullptr);
@@ -244,7 +318,11 @@ void PauseState::Render() {
 
 void PauseState::Pause() { std::cout << "pause pause" << std::endl; }
 void PauseState::Resume() { std::cout << "resume pause" << std::endl; }
-void PauseState::Exit() { std::cout << "exit pause" << std::endl; }
+
+void PauseState::Exit() { 
+	std::cout << "exit pause" << std::endl;
+	if (Mix_PausedMusic()) Mix_ResumeMusic();
+}
 
 //Inherited classes:
 //	-> Lose
@@ -266,7 +344,6 @@ void LoseState::Render() {
 
 	State::Render();
 }
-
 
 void LoseState::Pause() { std::cout << "pause lose" << std::endl; }
 void LoseState::Resume() { std::cout << "resume lose" << std::endl; }

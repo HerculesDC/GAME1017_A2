@@ -10,15 +10,19 @@ class Command {
 		virtual bool Execute(void * param) = 0;
 };
 
-class StateChangeCommand:public Command{
+class StateChangeCommand : public Command{
 	virtual bool Execute(void* exec) override;
 };
 
-class QuitCommand :public Command {
+class QuitCommand : public Command {
 	virtual bool Execute(void* exec) override;
 };
 
-class KeyCommand :public Command {
+class KeyCommand : public Command {
+	virtual bool Execute(void* exec) override;
+};
+
+class PlayerChangeCommand : public Command {
 	virtual bool Execute(void* exec) override;
 };
 

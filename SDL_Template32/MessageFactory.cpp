@@ -32,7 +32,6 @@ void MessageFactory::SetColor(SDL_Color c) {
 }
 
 SDL_Texture* MessageFactory::Export(const char* input) {
-
 	//TTF_RenderText_Solid returns a pointer to a surface (made with the font, text, and color), which is used to create the texture.
 	return SDL_CreateTextureFromSurface(Game::Instance()->GetRenderer(), TTF_RenderText_Solid(m_pFont, input, m_color));
 }

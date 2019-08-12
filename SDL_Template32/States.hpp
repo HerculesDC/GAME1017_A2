@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
 #include "SDL.h"
+
 class Sprite;
-class Button;
+class Obstacle;
 
 class State{
 	public:
@@ -58,6 +59,9 @@ class GameState : public State {
 		void Exit() final override;
 
 	private:
+		int m_iNumObst;
+		std::vector<Obstacle*> m_vObstacles;
+		std::vector<Sprite*> m_vForegrounds;
 		//may require rework
 		bool CheckCollision(SDL_Rect bb1, SDL_Rect bb2);
 };
