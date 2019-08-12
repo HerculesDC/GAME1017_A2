@@ -1,7 +1,7 @@
 #include <iostream>
 #include <typeinfo>
 #include "StateMachine.hpp"
-#include "Sprite.hpp"
+//#include "Sprite.hpp"
 
 StateMachine& StateMachine::Instance() {
 

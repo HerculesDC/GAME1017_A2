@@ -1,7 +1,6 @@
 #include "Sprite.hpp"
 
 //trying to avoid circular references here
-#include "Game.h"
 #include "Managers.hpp"
 #include "CommandHandler.hpp"
 
@@ -34,7 +33,7 @@ SDL_Texture* Sprite::GetTexture() { return TextureManager::Instance()->Retrieve(
 void Sprite::Render() {
 	//CAUTIONARY: assumes rendering the whole sprite onto destination rectangle (hence source is nullptr)
 	//override accordingly
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), nullptr, &m_rDst);
+	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), nullptr, &m_rDst);
 }
 
 //requires the use of the functional header: check
@@ -80,9 +79,9 @@ void Button::Update() {
 void Button::Render() {
 	
 	if (m_innerState!=MOUSEUP) {
-		SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 0x64, 0xFF, 0x32, 0x32);
-		SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
-		SDL_RenderFillRect(Game::Instance()->GetRenderer(), &m_rDst);
+		SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 0x64, 0xFF, 0x32, 0x32);
+		SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
+		SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rDst);
 	}
 	Sprite::Render();
 }
@@ -110,5 +109,5 @@ void Background::Reset() { m_rDst.x = m_iStartX; }
 
 void Background::Render() {
 	//retrieves the Backgrounds image
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), &m_rSrc, &m_rDst);
+	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), &m_rSrc, &m_rDst);
 }

@@ -24,17 +24,12 @@ Game* Game::Instance()
 	return instance;
 }
 
-void Game::Run(const char * title, int xPos, int yPos, int width, int height, int flags)
+void Game::Run()
 {
-	if (m_bStarted == true)
-		return;
-	cout << "Starting game." << endl;
+	if (m_bStarted == true) return;
 	m_bStarted = true;
-	if (Init(title, xPos, yPos, width, height, flags) == false)
-	{
-		cout << "Cannot initialize game." << endl;
-		return;
-	}
+	if (!Init()) return; //Game cannot be initialized
+	
 	// Main engine loop here.
 	while (Running())
 	{
@@ -49,23 +44,18 @@ void Game::Run(const char * title, int xPos, int yPos, int width, int height, in
 	Clean();
 }
 
-bool Game::Init(const char* title, const int xpos, const int ypos, 
-			    const int width, const int height, const int flags)
+bool Game::Init()
 {
 	// Attempt to initialize SDL.
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 0) // 0 is error code meaning success.
-	{
-		cout << "SDL init success!" << endl;
-		// Initialize the window
-		m_pWindow = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
-		if (m_pWindow != nullptr) // Window init success. 
+	{	
+		if (WindowManager::Instance()->GetWindow() != nullptr) // Window init success. 
 		{
-			cout << "Window creation successful!" << endl;
-			m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, 0);
-			if (m_pRenderer != nullptr) // Renderer init success. 
+			cout << "Window and its manager initialized successfully!" << endl;
+			if (RendererManager::Instance()->GetRenderer() != nullptr) // Renderer init success. 
 			{
+				cout << "Renderer and its manager initialized successfully!" << endl;
 				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
-				cout << "Renderer creation success!" << endl;
 				if (TextureManager::Instance()->Init())
 				{
 					//may require refactoring
@@ -81,11 +71,47 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 					cout << "Image init fail!" << endl;
 					return false;// Image init fail.
 				}
+
+				if (MessageFactory::Instance()->Init()) {
+					//I planned to use a simple file parser for this, but it would introduce complications when indexing.
+					//I opted for this mostly for simplicity
+					//OBS: lowercase: full font <=> UPPERCASE: outline font		
+					//Texture index
+					MessageFactory::Instance()->SetColor(255, 255, 255, 255);
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//6
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//7
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//9
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("CHARACTER  SELECT"));		//10
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("back"));					//11
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//12
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//13
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//14
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//15
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//16
+				}
+				else {
+
+					cout << "fonts not initialized" << endl;
+					return false;
+				}
 			}
 			else
 			{
 				cout << "Renderer init fail!" << endl;
 				return false; // Renderer init fail. 
+			}
+
+			if (AudioManager::Instance()->Init()) {
+				//Music and Sound Indices:
+				AudioManager::Instance()->AddMusic("Sound/Chase.mp3"); //0
+				AudioManager::Instance()->AddMusic("Sound/Death.mp3"); //1
+				AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav"); //0
+			}
+			else
+			{
+				cout << "Sound init fail!" << endl;
+				return false; // SDL init fail. 
 			}
 		}
 		else
@@ -93,43 +119,6 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 			cout << "Window init fail!" << endl;
 			return false; // Window init fail. 
 		}
-
-		if (AudioManager::Instance()->Init()) {
-			//Music and Sound Indices:
-			AudioManager::Instance()->AddMusic("Sound/Chase.mp3"); //0
-			AudioManager::Instance()->AddMusic("Sound/Death.mp3"); //1
-			AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav"); //0
-		}
-		else
-		{
-			cout << "Sound init fail!" << endl;
-			return false; // SDL init fail. 
-		}
-
-		if (MessageFactory::Instance()->Init()) {
-			//I planned to use a simple file parser for this, but it would introduce complications when indexing.
-			//I opted for this mostly for simplicity
-			//OBS: lowercase: full font <=> UPPERCASE: outline font		
-			//Texture index
-			MessageFactory::Instance()->SetColor(255, 255, 255, 255);
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//6
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//7
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//9
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("CHARACTER  SELECT"));		//10
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("back"));					//11
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//12
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//13
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//14
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//15
-			TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//16
-		}
-		else { 
-			
-			cout << "fonts not initialized" << endl;
-			return false;
-		}
-
 		StateMachine::Instance().RequestStateChange(new MachineStates(TITLE));
 	}
 	else
@@ -138,7 +127,6 @@ bool Game::Init(const char* title, const int xpos, const int ypos,
 		return false; // SDL init fail. 
 	}
 
-	
 	srand((unsigned)time(NULL));
 	
 	m_bRunning = true;
@@ -180,9 +168,12 @@ void Game::Render()
 
 void Game::Clean()
 {
-	cout << "Cleaning game. Bye!" << endl;
-	SDL_DestroyRenderer(m_pRenderer);
-	SDL_DestroyWindow(m_pWindow);
+	cout << "Cleaning game. Bye!" << endl; 
+	AudioManager::Instance()->Release();
+	MessageFactory::Instance()->Release();
+	TextureManager::Instance()->Release();
+	RendererManager::Instance()->Release();
+	WindowManager::Instance()->Release();
 	IMG_Quit();
 	SDL_Quit();
 }

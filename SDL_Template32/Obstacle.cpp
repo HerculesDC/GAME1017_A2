@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Obstacle.hpp"
-#include "Game.h"
+#include "Managers.hpp"
 
 Obstacle::Obstacle(int xStart, int speed, bool hasSprite, int index,
 				   SDL_Rect destination, SDL_Rect source,
@@ -37,13 +37,13 @@ void Obstacle::Update() {
 
 void Obstacle::Render() {
 	if (m_pSprite != nullptr) {
-		SDL_RenderCopyEx(Game::Instance()->GetRenderer(), m_pSprite->GetTexture(), 
+		SDL_RenderCopyEx(RendererManager::Instance()->GetRenderer(), m_pSprite->GetTexture(), 
 						 m_pSprite->GetSrcP(), m_pSprite->GetDstP(), 
 						 m_dAngle, NULL, SDL_FLIP_NONE);
 		//obs.: NULL centers the rotation point, SDL_FLIP_NONE ensures sprite isn't flipped
 		//COLLISION SPECS (will be refactored
-		SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 127, 127, 127, 100);
-		SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_ADD);
-		SDL_RenderFillRect(Game::Instance()->GetRenderer(), &m_rColl);
+		SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 127, 127, 127, 100);
+		SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_ADD);
+		SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rColl);
 	}
 }

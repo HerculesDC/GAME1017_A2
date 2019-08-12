@@ -1,6 +1,5 @@
 #include <iostream>
 #include "States.hpp"
-#include "Game.h"
 #include "Managers.hpp"
 #include "Sprite.hpp"
 #include "StateMachine.hpp"
@@ -31,7 +30,7 @@ void State::Render() {
 			(*it)->Render();
 		}
 	}
-	SDL_RenderPresent(Game::Instance()->GetRenderer());
+	SDL_RenderPresent(RendererManager::Instance()->GetRenderer());
 }
 
 //Inherited classes:
@@ -79,12 +78,12 @@ void TitleState:: Update() {  //Other functionality goes here
 
 void TitleState::Render() {
 
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
-	SDL_RenderClear(Game::Instance()->GetRenderer());
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 255, 255, 255, 255);
+	SDL_RenderClear(RendererManager::Instance()->GetRenderer());
 	
 
 	//I treated this one background differently. Passing null pointers to use the entire screen
-	SDL_RenderCopy(Game::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
+	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
 	
 	State::Render();
 }
@@ -106,8 +105,8 @@ void MenuState::Update() { State::Update(); }
 
 void MenuState::Render() {
 
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 0, 255, 255, 255);
-	SDL_RenderClear(Game::Instance()->GetRenderer());
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 0, 255, 255, 255);
+	SDL_RenderClear(RendererManager::Instance()->GetRenderer());
 
 	//thinking of implementing characters as buttons that animate on mouseover...
 	//may also require a button for "back." No quit planned for this screen
@@ -220,8 +219,8 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 
 void GameState::Render() { //Can't rely on State's original rendering, due to its multilayer approach
 
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 255, 255, 255);
-	SDL_RenderClear(Game::Instance()->GetRenderer());
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 255, 255, 255, 255);
+	SDL_RenderClear(RendererManager::Instance()->GetRenderer());
 
 	if (!m_vSprites.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
@@ -237,7 +236,7 @@ void GameState::Render() { //Can't rely on State's original rendering, due to it
 		(*it)->Render();
 	}
 
-	SDL_RenderPresent(Game::Instance()->GetRenderer());
+	SDL_RenderPresent(RendererManager::Instance()->GetRenderer());
 }
 
 void GameState::Pause() { 
@@ -308,10 +307,10 @@ void PauseState::Update() { State::Update(); }
 
 void PauseState::Render() {
 	//requires setting blend mode because it's a semitransparent overlay
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 127, 127, 127, 50);
-	SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 127, 127, 127, 50);
+	SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
 	//we want to render an overlay, not clear the screen
-	SDL_RenderFillRect(Game::Instance()->GetRenderer(), nullptr);
+	SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), nullptr);
 
 	State::Render();
 }
@@ -338,9 +337,9 @@ void LoseState::Update() {
 
 void LoseState::Render() {
 	//requires setting blend mode because it's a semitransparent overlay
-	SDL_SetRenderDrawColor(Game::Instance()->GetRenderer(), 255, 0, 0, 150);
-	SDL_SetRenderDrawBlendMode(Game::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
-	SDL_RenderFillRect(Game::Instance()->GetRenderer(), nullptr);
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 255, 0, 0, 150);
+	SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
+	SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), nullptr);
 
 	State::Render();
 }

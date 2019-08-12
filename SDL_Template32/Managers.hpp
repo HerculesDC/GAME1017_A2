@@ -8,20 +8,46 @@
  *	As far as I understand, the Game shouldn't need to know about specific resources such as Images
  *	and etc. So I moved the Image and Mixer headers here. The TextureManager is also responsible 
  *	for providing the textures to whoever needs it. I figured this "database" model made more sense
- *	than trying to have each class keeping track of their own textures
+ *	than trying to have each class keeping track of their own textures directly
  */
-
 #pragma once
 #include <vector>
-
+#include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
+
+class WindowManager {
+	public:
+		static WindowManager* Instance();
+		compl WindowManager() { Release(); }
+
+		SDL_Window* GetWindow() { return m_pWindow; }
+		void Release() { if (m_pWindow) SDL_DestroyWindow(m_pWindow); }
+
+	private:
+		WindowManager();
+		SDL_Window* m_pWindow;
+};
+
+class RendererManager {
+	public:
+		static RendererManager* Instance();
+		compl RendererManager() { Release(); }
+
+		SDL_Renderer* GetRenderer() { return m_pRenderer; }
+		void Release() { if (m_pRenderer) SDL_DestroyRenderer(m_pRenderer); }
+
+	private:
+		RendererManager();
+		SDL_Renderer* m_pRenderer;
+};
 
 class TextureManager {
 
 	public:
 		static TextureManager* Instance();
 		bool Init();
+		void Release();
 
 		void Add(const char* filename);
 		void Add(SDL_Texture* texture);
@@ -38,6 +64,7 @@ class AudioManager {
 	public:
 		static AudioManager* Instance();
 		bool Init();
+		void Release();
 
 		void AddMusic(const char* filename);
 		void AddChunk(const char* filename);

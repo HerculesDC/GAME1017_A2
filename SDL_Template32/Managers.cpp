@@ -1,5 +1,29 @@
-#include "Game.h"
 #include "Managers.hpp"
+
+WindowManager* WindowManager::Instance() {
+	static WindowManager* instance = new WindowManager();
+	return instance;
+}
+
+//if config files are used, this file will need a parser
+WindowManager::WindowManager() : 
+	m_pWindow(SDL_CreateWindow("Gosh Dang to Heck! A Profanity-free Game", 
+								SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+								1024, 768, 0))
+{
+	if (m_pWindow == nullptr) { /*flag error*/ }
+}
+
+RendererManager* RendererManager::Instance() {
+	static RendererManager* instance = new RendererManager();
+	return instance;
+}
+
+RendererManager::RendererManager() :
+	m_pRenderer(SDL_CreateRenderer(WindowManager::Instance()->GetWindow(), -1, 0))
+{
+	if (m_pRenderer == nullptr) { /*flag error*/ }
+}
 
 TextureManager* TextureManager::Instance() {
 
@@ -13,15 +37,19 @@ TextureManager::TextureManager() {
 }
 
 TextureManager::compl TextureManager() {
-
-	for (int i = 0; i < m_vTextures.capacity(); ++i) SDL_DestroyTexture(m_vTextures[i]);
-	m_vTextures.clear();
-	m_vTextures.shrink_to_fit();
+	if (m_vTextures.size() != 0) Release();
 }
 
 bool TextureManager::Init() {
-
 	return IMG_Init(IMG_INIT_PNG);
+}
+
+void TextureManager::Release() {
+	if (!m_vTextures.empty()) {
+		for (int i = 0; i < m_vTextures.size(); ++i) SDL_DestroyTexture(m_vTextures[i]);
+	}
+	m_vTextures.clear();
+	m_vTextures.shrink_to_fit();
 }
 
 void TextureManager::Add(const char* filename)
@@ -32,14 +60,14 @@ void TextureManager::Add(const char* filename)
 			create texture* from surface(and renderer), 
 			push texture* to the vector.
 	*/
-	m_vTextures.push_back(SDL_CreateTextureFromSurface(Game::Instance()->GetRenderer(), IMG_Load(filename)));
+	m_vTextures.push_back(SDL_CreateTextureFromSurface(RendererManager::Instance()->GetRenderer(), IMG_Load(filename)));
 	//another comment on it: 
-	//	this approach makes it unnecessary to free the temporary surface after creation
+	//	this approach makes it (apparently) unnecessary to free the temporary surface after creation
 }
 
 void TextureManager::Add(SDL_Texture* source) {
 
-	m_vTextures.push_back(source);
+	if (source) m_vTextures.push_back(source);
 }
 
 SDL_Rect* TextureManager::GetSize(int index, int x, int y) const {
@@ -76,14 +104,7 @@ AudioManager::AudioManager() {
 }
 
 AudioManager::compl AudioManager() {
-	
-	for (int i = 0; i < m_vChunk.size(); ++i) Mix_FreeChunk(m_vChunk[i]);
-	for (int j = 0; j < m_vMusic.size(); ++j) Mix_FreeMusic(m_vMusic[j]);
-
-	m_vChunk.clear();
-	m_vMusic.clear();
-	m_vChunk.shrink_to_fit();
-	m_vMusic.shrink_to_fit();
+	if (m_vChunk.size() != 0 || m_vMusic.size() != 0) Release();
 }
 
 bool AudioManager::Init() {
@@ -94,6 +115,16 @@ bool AudioManager::Init() {
 		return true;
 	}
 	return false;
+}
+
+void AudioManager::Release() {
+	for (int i = 0; i < m_vChunk.size(); ++i) Mix_FreeChunk(m_vChunk[i]);
+	for (int j = 0; j < m_vMusic.size(); ++j) Mix_FreeMusic(m_vMusic[j]);
+
+	m_vChunk.clear();
+	m_vMusic.clear();
+	m_vChunk.shrink_to_fit();
+	m_vMusic.shrink_to_fit();
 }
 
 void AudioManager::AddMusic(const char* filename) {

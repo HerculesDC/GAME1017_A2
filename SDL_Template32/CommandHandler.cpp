@@ -41,7 +41,6 @@ bool CommandHandler::GetKeyDown(SDL_Scancode c)
 	return false;
 }
 
-#include "Game.h"
 void CommandHandler::HandleEvents() {
 		
 	SDL_Event evt;

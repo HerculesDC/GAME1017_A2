@@ -3,7 +3,6 @@
  * bases its design on creating textures with the message "printed" in them, I concluded it would
  * be easier to encapsulate this funtionality and let the TextureManager handle the rest
  */
-
 #pragma once
 #include "SDL.h"
 #include "SDL_ttf.h"
@@ -11,7 +10,8 @@
 class MessageFactory {
 	public:
 		static MessageFactory* Instance();
-		bool Init();
+		bool Init() { return TTF_WasInit(); }
+		void Release() { if (m_pFont) TTF_CloseFont(m_pFont); }
 
 		SDL_Texture* Export(const char* input);
 
@@ -22,7 +22,7 @@ class MessageFactory {
 
 	private:
 		MessageFactory();
-		compl MessageFactory();
+		compl MessageFactory() { Release(); }
 
 		TTF_Font* m_pFont;
 		SDL_Color m_color;
