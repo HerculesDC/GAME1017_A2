@@ -9,8 +9,6 @@ private:
 	bool m_bGotTick;
 	Uint32 m_start, m_end, m_delta, m_fps;
 
-	// Create (number visible +1) objects for each background.
-
 	Game();
 	bool Init();
 	bool Running();
