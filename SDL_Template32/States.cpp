@@ -5,8 +5,6 @@
 #include "StateMachine.hpp"
 #include "Obstacle.hpp"
 
-enum SoundStates { LOOP = -1, NO_LOOP, CHUNK_CHANNEL, };
-
 //base class
 State::State() {}
 State::compl State() {}
@@ -15,26 +13,25 @@ void State::Update() {
 
 	if (!m_vSprites.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
-			(*it)->Update();
+			if ((*it) != nullptr) { 
+				(*it)->Update();
+			}
+			else { std::cout << "empty item" << std::endl; }
 		}
 	}
 }
 
 void State::Render() { 
 
-		//this makes all of the sprites(and subclasses) be rendered accordingly.
-		//I'm relying on their inheritance to achieve proper behavior
-		//And since this function is overridable, I don't have to worry reimplementing this sort of stuff
 	if (!m_vSprites.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
-			(*it)->Render();
+			if ((*it) != nullptr) (*it)->Render();
 		}
 	}
 	SDL_RenderPresent(RendererManager::Instance()->GetRenderer());
 }
 
-//Inherited classes:
-//	-> Title
+//Inherited classes: Title
 TitleState::TitleState() {
 	m_vSprites.reserve(1);
 }
@@ -44,41 +41,35 @@ void TitleState::Enter() {
 	std::cout << "enter title" << std::endl;
 
 	SDL_Rect* temp = nullptr;
-	//6: Title Text
-	temp = TextureManager::Instance()->GetSize(6, 50, 75);
-	m_vSprites.push_back(new Sprite(6, *temp));
-	
-	//7: Subtitle Text
-	temp = TextureManager::Instance()->GetSize(7, 25, 150);
-	m_vSprites.push_back(new Sprite(7, *temp));
-
-	//8: Play text
-	temp = TextureManager::Instance()->GetSize(8, 300, 400);
+	//8: Title text index
+	temp = TextureManager::Instance()->GetSize(8, 50, 75);
 	m_vSprites.push_back(new Sprite(8, *temp));
-
-	//9: Quit text
-	temp = TextureManager::Instance()->GetSize(9, 550, 400);
+	
+	//9: Subtitle text index
+	temp = TextureManager::Instance()->GetSize(9, 25, 150);
 	m_vSprites.push_back(new Sprite(9, *temp));
 
-	/*
-	 * ANIMATION TEST (PASSED)
-	//5:Player sprite for test
-	m_vSprites.push_back(new AnimatedSprite(5, 2));
-	//this is just for test for now
-	m_vSprites.back()->SetDest({(1024/2)-64,(768/2)-64, 128, 128});
-	m_vSprites.back()->SetState(new SpriteState(DYING));
-	*/
+	//10: Play text index
+	temp = TextureManager::Instance()->GetSize(10, 300, 400);
+	m_vSprites.push_back(new Sprite(10, *temp));
 
-	//manually setting buttons for now
+	//11: Quit text index
+	temp = TextureManager::Instance()->GetSize(11, 550, 400);
+	m_vSprites.push_back(new Sprite(11, *temp));
+	
+	//2: Play button image index
 	Command* c = new StateChangeCommand;
-	temp = TextureManager::Instance()->GetSize(1, 300, 500);
-	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1)); //1: play button image
+	temp = TextureManager::Instance()->GetSize(2, 300, 500);
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(MENU), false, 2));
 	m_vSprites.back()->SetDest(*temp);
 
+	//3: Quit button image index
 	Command* q = new QuitCommand;
-	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 565, 500);
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 3));
+	temp = TextureManager::Instance()->GetSize(3, 565, 500);
 	m_vSprites.back()->SetDest(*temp);
+
+	m_vSprites.shrink_to_fit();
 }
 
 void TitleState:: Update() {  //Other functionality goes here
@@ -90,48 +81,103 @@ void TitleState::Render() {
 	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 255, 255, 255, 255);
 	SDL_RenderClear(RendererManager::Instance()->GetRenderer());
 	
-
-	//I treated this one background differently. Passing null pointers to use the entire screen
+	//I treat backgrounds differently, because they don't require speicific placement.
+	//I just pass null pointers to the source and destination, to render the whole image to the whole screen
 	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(0), nullptr, nullptr);
 	
 	State::Render();
 }
 
-void TitleState::Pause() { std::cout << "pause title" << std::endl; }
-void TitleState::Resume() { std::cout << "resume title" << std::endl; }
-void TitleState::Exit() { std::cout << "exit title" << std::endl;  }
+void TitleState::Pause() { /*It shouldn't be posible to pause the title*/ }
+void TitleState::Resume() { /*It shouldn't be posible to unpause the title*/ }
 
-//Inherited classes:
-//	-> Menu
-//		-> Thinking of implementing "menu" as a sort of "Pause" of "Title".
-//			-> Will require rework actually on the StateMachine
+void TitleState::Exit() { 
+	//THIS CODE IS CAUSING SOME UNDESIRED SIDE-EFFECTS...
+	/*
+	if (!m_vSprites.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
+			delete (*it);
+			(*it) = nullptr;
+		}
+	}
+	*/
+}
+
+//Inherited classes: Menu
 MenuState::MenuState() {}
 MenuState::compl MenuState() {}
 
-void MenuState::Enter() { std::cout << "enter menu" << std::endl; }
+void MenuState::Enter() {
+	//REWORK LAYOUT!
+	std::cout << "enter menu" << std::endl;
 
-void MenuState::Update() { State::Update(); }
+	SDL_Rect* temp = nullptr;
+	//8: Title text index
+	temp = TextureManager::Instance()->GetSize(8, 50, 75);
+	m_vSprites.push_back(new Sprite(8, *temp));
+
+	//12: Character select text index
+	temp = TextureManager::Instance()->GetSize(12, 100, 150);
+	m_vSprites.push_back(new Sprite(12, *temp));
+
+	Command* g = new StateChangeCommand;
+	
+	for (int i = 0; i < 3; ++i) {
+		//7:Player sprite, animated button
+		m_vSprites.push_back(new AnimatedButton(*g, &Command::Execute, new MachineStates(GAME), false, i, 7));
+		m_vSprites.back()->SetDest({ 200 + (i*200), (768 / 2) - 64, 128, 128 });
+	}
+
+	//13: Back text index
+	temp = TextureManager::Instance()->GetSize(13, 25, 550);
+	m_vSprites.push_back(new Sprite(13, *temp));
+
+	//4: back button image. Reuses the StateChangeCommand initialized earlier
+	m_vSprites.push_back(new Button(*g, &Command::Execute, new MachineStates(TITLE), false, 4));
+	temp = TextureManager::Instance()->GetSize(2, 265, 500);
+	m_vSprites.back()->SetDest(*temp);
+
+	//11: Quit text index
+	temp = TextureManager::Instance()->GetSize(11, 700, 550);
+	m_vSprites.push_back(new Sprite(11, *temp));
+
+	//3: quit button image
+	Command* q = new QuitCommand;
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 3)); 
+	temp = TextureManager::Instance()->GetSize(2, 565, 500);
+	m_vSprites.back()->SetDest(*temp);
+}
+
+void MenuState::Update() { 
+	State::Update();
+	//I know there should be an easier way, but honestly, I'm in it for the practice
+	for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
+		
+		AnimatedButton* test = dynamic_cast<AnimatedButton*>((*it));
+		if (test != nullptr) {
+			if (test->GetCurState() == MOUSEDOWN) {
+				StateMachine::Instance().SetPlayer(test->GetPlayer());
+			}
+		}
+	}
+}
 
 void MenuState::Render() {
 
 	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 0, 255, 255, 255);
 	SDL_RenderClear(RendererManager::Instance()->GetRenderer());
 
-	//thinking of implementing characters as buttons that animate on mouseover...
-	//may also require a button for "back." No quit planned for this screen
+	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(1), nullptr, nullptr);
 
 	State::Render();
 }
 
+void MenuState::Pause() { /*It shouldn't be posible to pause the menu*/ }
+void MenuState::Resume() {/*It shouldn't be posible to unpause the menu*/ }
+void MenuState::Exit() {}
 
-void MenuState::Pause() { std::cout << "pause menu" << std::endl; }
-void MenuState::Resume() { std::cout << "resume menu" << std::endl; }
-void MenuState::Exit() { std::cout << "exit menu" << std::endl; }
-
-//Inherited classes:
-//	-> Game
-//reversed my decision to use an enum class in this case. 
-//These values are informative, and should be readily convertible
+//Inherited classes: Game
+//These values are merely informative, and should be readily convertible
 enum ObstacleInfo { OBST_THRESHOLD = 3, MAX_OBST = 9, OBST_SIZE = 128, };
 
 GameState::GameState() : m_iNumObst(0) {
@@ -142,14 +188,14 @@ GameState::GameState() : m_iNumObst(0) {
 GameState::compl GameState() {}
 
 void GameState::Enter() {
-
+	
 	//OBS: Still not sure where to put the death sound
 
 	if (!Mix_PlayingMusic()) Mix_PlayMusic(AudioManager::Instance()->GetMusic(0), LOOP);
 
 	std::cout << "enter game" << std::endl;
 	//Scenery setup:
-	int tempIndex = 3; //index common to backgrounds
+	int tempIndex = 5; //index common to backgrounds
 
 	//Background specs
 	int tempSpeed = 2; //I halved the framerate, so I'm doubling the speeds
@@ -206,7 +252,7 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 			delete m_vObstacles.front();
 			m_vObstacles.erase(m_vObstacles.begin());
 			if (m_iNumObst == 0) {
-				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 6, true, 4, 
+				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 6, true, 6, 
 					{8* OBST_SIZE, 448, OBST_SIZE, OBST_SIZE }, { OBST_SIZE , OBST_SIZE , OBST_SIZE , OBST_SIZE },
 					false, true, 5.0));
 			}
@@ -256,7 +302,7 @@ void GameState::Pause() {
 void GameState::Resume() { 
 	std::cout << "resume game" << std::endl;
 	if (Mix_PausedMusic()) Mix_ResumeMusic();
-	//else if (!Mix_PlayingMusic()) Mix_PlayMusic(AudioManager::Instance()->GetMusic(0), LOOP);
+	else if (!Mix_PlayingMusic()) Mix_PlayMusic(AudioManager::Instance()->GetMusic(0), LOOP);
 }
 
 void GameState::Exit() { 
@@ -266,8 +312,7 @@ void GameState::Exit() {
 
 bool GameState::CheckCollision(SDL_Rect bound1, SDL_Rect bound2) { return false; }
 
-//Inherited classes:
-//	-> Pause
+//Inherited classes: Pause
 PauseState::PauseState() {}
 PauseState::compl PauseState() {}
 
@@ -288,7 +333,7 @@ void PauseState::Enter() {
 
 	//1: play button image
 	Command* c = new StateChangeCommand;
-	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), 1));
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), false, 1));
 	temp = TextureManager::Instance()->GetSize(1, 200, 500);
 	m_vSprites.back()->SetDest(*temp);
 
@@ -297,7 +342,7 @@ void PauseState::Enter() {
 	m_vSprites.push_back(new Sprite(16, *temp));
 
 	//1: Play button image. Will implement proper button if I have the time
-	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), 1));
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), false, 1));
 	temp = TextureManager::Instance()->GetSize(1, 500, 500);
 	m_vSprites.back()->SetDest(*temp);
 
@@ -307,7 +352,7 @@ void PauseState::Enter() {
 
 	//this begets a new command, actually...
 	Command* q = new QuitCommand;
-	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), 2)); //2: quit button image
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 2)); //2: quit button image
 	temp = TextureManager::Instance()->GetSize(2, 800, 500);
 	m_vSprites.back()->SetDest(*temp);
 }
@@ -332,9 +377,7 @@ void PauseState::Exit() {
 	if (Mix_PausedMusic()) Mix_ResumeMusic();
 }
 
-//Inherited classes:
-//	-> Lose
-//CHECK PAUSE STATE FOR REWORK
+//Inherited classes: Lose
 LoseState::LoseState() {}
 LoseState::compl LoseState() {}
 

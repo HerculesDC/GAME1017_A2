@@ -60,6 +60,8 @@ class TextureManager {
 		std::vector<SDL_Texture*> m_vTextures;
 };
 
+enum SoundStates { LOOP = -1, NO_LOOP, CHUNK_CHANNEL, };
+
 class AudioManager {
 	public:
 		static AudioManager* Instance();

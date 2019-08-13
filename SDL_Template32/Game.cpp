@@ -60,11 +60,13 @@ bool Game::Init()
 				{
 					//may require refactoring
 					TextureManager::Instance()->Add("Img/TitleScreen.png");	//0
-					TextureManager::Instance()->Add("Img/playButton.png");	//1
-					TextureManager::Instance()->Add("Img/quitButton.png");	//2
-					TextureManager::Instance()->Add("Img/Backgrounds.png"); //3
-					TextureManager::Instance()->Add("Img/Obstacles.png");	//4
-					TextureManager::Instance()->Add("Img/Player.png");		//5
+					TextureManager::Instance()->Add("Img/MenuScreen.png"); 	//1
+					TextureManager::Instance()->Add("Img/playButton.png");	//2
+					TextureManager::Instance()->Add("Img/quitButton.png");	//3
+					TextureManager::Instance()->Add("Img/upButton.png");	//4
+					TextureManager::Instance()->Add("Img/Backgrounds.png");	//5
+					TextureManager::Instance()->Add("Img/Obstacles.png");	//6
+					TextureManager::Instance()->Add("Img/Player.png");		//7
 				}
 				else
 				{
@@ -77,18 +79,18 @@ bool Game::Init()
 					//I opted for this mostly for simplicity
 					//OBS: lowercase: full font <=> UPPERCASE: outline font		
 					//Texture index
-					MessageFactory::Instance()->SetColor(255, 255, 255, 255);
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//6
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//7
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//8
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//9
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("CHARACTER  SELECT"));		//10
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("back"));					//11
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("GAME  PAUSED"));			//12
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//13
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//14
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//15
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//16
+					//MessageFactory::Instance()->SetColor(255, 255, 255, 255);
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("gosh  dang  to  heck !"));	//8
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("A  PROFANITY FREE  GAME"));	//9
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("play"));					//10
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("quit"));					//11
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("character select"));		//12
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("back"));					//13
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("game paused"));				//14
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//15
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//16
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//17
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//18
 				}
 				else {
 

@@ -38,7 +38,7 @@ void Sprite::Render() {
 }
 
 //requires the use of the functional header: check
-Button::Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, int index, bool bState): 
+Button::Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, bool bState, int index):
 	Sprite(index),
 	m_cAddress(inCommand), 
 	OnClick(inFunction),
@@ -87,7 +87,7 @@ void Button::Render() {
 	Sprite::Render();
 }
 
-AnimatedSprite::AnimatedSprite(int index, int playerChoice) : 
+AnimatedSprite::AnimatedSprite(int playerChoice, int index) :
 	Sprite(index),
 	m_iSpriteBase(playerChoice % 3), //ensures it's a valid part of the sprite
 	m_sCurState(IDLING), 
@@ -171,6 +171,54 @@ void AnimatedSprite::Update() {
 void AnimatedSprite::Render() {
 	SDL_RenderCopy(RendererManager::Instance()->GetRenderer(), TextureManager::Instance()->Retrieve(m_iIndex), &m_rSrc, &m_rDst);
 }
+
+AnimatedButton::AnimatedButton(Command& inCommand, bool (Command::*inFunction)(void*), void* param,
+	bool buttonState, int playerIndex, int sourceIndex) :
+	Button(inCommand, inFunction, param, buttonState, sourceIndex),
+	AnimatedSprite(playerIndex, sourceIndex),
+	Sprite(sourceIndex)
+{/*One mystery remains, however: which index is considered when constructing the base Sprite?*/}
+
+AnimatedButton::compl AnimatedButton() {}
+
+void AnimatedButton::Update() {
+
+	if (CommandHandler::Instance()->GetMouse() != nullptr) {
+
+		if (SDL_PointInRect(CommandHandler::Instance()->GetMouse(), &m_rDst)) {
+			
+			if (m_sCurState != RUNNING)
+				SetState(new SpriteState(RUNNING));
+			
+			m_innerState = MOUSEOVER;
+			
+			if (CommandHandler::Instance()->GetMouseButton() != nullptr) {
+				if (CommandHandler::Instance()->GetMouseButton()->state == SDL_PRESSED) {
+			
+					m_innerState = MOUSEDOWN;
+					m_bState = true;
+				}
+				if (CommandHandler::Instance()->GetMouseButton()->state == SDL_RELEASED) {
+					if (m_bState) {
+					
+						OnClick(m_cAddress, m_pParam);
+						m_bState = false;
+					}
+				}
+			}
+		}
+		else { 
+
+			if (m_sCurState != IDLING)
+				SetState(new SpriteState(IDLING));
+
+			m_innerState = MOUSEUP;
+		}
+	}
+	Animate();
+}
+
+void AnimatedButton::Render() { AnimatedSprite::Render(); }
 
 Background::Background(int index, SDL_Rect destination, SDL_Rect source, int speed) 
 					  : Sprite(index, destination, source), 

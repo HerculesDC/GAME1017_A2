@@ -27,7 +27,7 @@ class Sprite {
 		virtual bool SetState(void* exec) { /*TO OVERRIDE!*/ return false; }
 		
 		virtual void Update() {/*empty method for overriding*/ }
-		virtual void Render();
+		virtual void Render(); //NOT EMPTY
 
 	protected:
 		SDL_Rect m_rSrc, m_rDst;
@@ -42,8 +42,8 @@ enum ButtonState { MOUSEUP = 0,
 class Button : virtual public Sprite {
 
 	public:
-		Button(Command& inCommand, bool (Command::*inFunction)(void*), void* param, 
-			   int index = 0, bool bState = false);
+		Button(Command& inCommand, bool (Command::* inFunction)(void*), void* param, 
+			   bool bState = false, int index = 0);
 		virtual compl Button();
 
 		virtual void Update() override;
@@ -64,7 +64,7 @@ enum SpriteState {IDLING, RUNNING, JUMPING, ROLLING, DYING,};
 
 class AnimatedSprite : public virtual Sprite { //uses player's spritesheet
 	public:
-		AnimatedSprite(int sourceIndex = 5, int playerIndex = 0);
+		AnimatedSprite(int playerIndex = 0, int sourceIndex = 7);
 		virtual compl AnimatedSprite();
 
 		virtual void Update() override;
@@ -73,6 +73,7 @@ class AnimatedSprite : public virtual Sprite { //uses player's spritesheet
 		//this one allows for "commandification" of the sprite
 		virtual bool SetState(void* exec);
 		virtual SpriteState GetCurState() const { return m_sCurState; }
+		virtual int GetPlayer() const { return m_iSpriteBase; }
 
 	protected: //Unrelated classes shouldn't access Animate(), except through Update()
 		virtual void Animate();
@@ -91,9 +92,24 @@ class AnimatedSprite : public virtual Sprite { //uses player's spritesheet
 			m_iMaxFrame;
 };
 
+class AnimatedButton : public virtual Button, virtual public AnimatedSprite {
+	public:
+		//OBS: Because commands cannot be defaulted, Button parameters must come first in this case
+		AnimatedButton(Command& inCommand, bool (Command::* inFunction)(void*), void* param, 
+						bool buttonState = false, int playerIndex = 0, int sourceIndex = 7);
+		compl AnimatedButton();
+	
+		//OBS: Classes with multiple inheritance MUST override methods common to both parents
+		virtual void Update() final override;
+		virtual void Render() final override;
+
+	private:
+		//may even be unneedded, because everything else is in parent classes
+};
+
 class Background : public Sprite {
 	public:
-		Background(int index = 3, SDL_Rect destination = { 0, 0, 0, 0 }, 
+		Background(int index = 5, SDL_Rect destination = { 0, 0, 0, 0 }, 
 				   SDL_Rect source = { 0, 0, 0, 0 }, int speed = 0);
 		compl Background();
 		

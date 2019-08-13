@@ -12,7 +12,7 @@ enum class ObstacleType {EMPTY, BUZZSAW, SPIKED_FLOOR, SPIKED_WALL,};
 class Obstacle {
 	public:
 		//Obstacle(ObstacleType oType = ObstacleType::EMPTY);
-		Obstacle(int xStart, int speed = 6, bool hasSprite = false, int index = 4,
+		Obstacle(int xStart, int speed = 6, bool hasSprite = false, int index = 6,
 				 SDL_Rect destination = {0, 0, 0, 0}, SDL_Rect source = { 0, 0, 0, 0 },
 				 bool isPlatform = false, bool rotates = false, double rotSpeed = 10.0);
 		compl Obstacle();
