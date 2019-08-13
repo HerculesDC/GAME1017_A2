@@ -23,6 +23,7 @@ class Sprite {
 		virtual void SetDest(SDL_Rect destRect);
 		virtual void SetX(int i) { m_rDst.x = i; }
 
+		//In retrospect, this should've been a sign that I ought to have reworked something...
 		virtual void SetSpeed(int i) {/*empty method for overriding*/}
 		virtual bool SetState(void* exec) { /*TO OVERRIDE!*/ return false; }
 		

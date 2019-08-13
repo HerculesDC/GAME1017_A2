@@ -127,6 +127,7 @@
     <ClCompile Include="Managers.cpp" />
     <ClCompile Include="MessageFactory.cpp" />
     <ClCompile Include="Obstacle.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="States.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="Managers.hpp" />
     <ClInclude Include="MessageFactory.hpp" />
     <ClInclude Include="Obstacle.hpp" />
+    <ClInclude Include="Player.hpp" />
     <ClInclude Include="Sprite.hpp" />
     <ClInclude Include="StateMachine.hpp" />
     <ClInclude Include="States.hpp" />

@@ -150,7 +150,7 @@ void MenuState::Enter() {
 
 void MenuState::Update() { 
 	State::Update();
-	//I know there should be an easier way, but honestly, I'm in it for the practice
+	//I know there should be a more elegant way, but honestly, I'm in it for the practice
 	for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); ++it) {
 		
 		AnimatedButton* test = dynamic_cast<AnimatedButton*>((*it));
