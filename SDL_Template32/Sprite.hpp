@@ -63,7 +63,7 @@ class Button : virtual public Sprite {
 //Thinking of turning this into an enum class later
 enum SpriteState {IDLING, RUNNING, JUMPING, ROLLING, DYING,};
 
-class AnimatedSprite : public virtual Sprite { //uses player's spritesheet
+class AnimatedSprite : public virtual Sprite { //uses player's spritesheet by default
 	public:
 		AnimatedSprite(int playerIndex = 0, int sourceIndex = 7);
 		virtual compl AnimatedSprite();

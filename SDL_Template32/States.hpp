@@ -1,9 +1,11 @@
 #pragma once
 #include <vector>
 #include "SDL.h"
+//#include "Player.hpp"
 
 class Sprite;
 class Obstacle;
+class Player;
 
 class State{
 	public:
@@ -60,10 +62,12 @@ class GameState : public State {
 
 	private:
 		int m_iNumObst;
+		SDL_Rect m_rGroundLine; //data for ground collision
 		std::vector<Obstacle*> m_vObstacles;
 		std::vector<Sprite*> m_vForegrounds;
-		//may require rework
-		bool CheckCollision(SDL_Rect bb1, SDL_Rect bb2);
+		Player* m_pPlayer; //may consider converting to object
+
+		bool CheckCollision();
 };
 
 class PauseState : public State {

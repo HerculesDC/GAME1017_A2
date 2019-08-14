@@ -4,6 +4,7 @@
 #include "Sprite.hpp"
 #include "StateMachine.hpp"
 #include "Obstacle.hpp"
+#include "Player.hpp"
 
 //base class
 State::State() {}
@@ -146,6 +147,8 @@ void MenuState::Enter() {
 	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 3)); 
 	temp = TextureManager::Instance()->GetSize(2, 565, 500);
 	m_vSprites.back()->SetDest(*temp);
+
+	m_vSprites.shrink_to_fit();
 }
 
 void MenuState::Update() { 
@@ -173,7 +176,7 @@ void MenuState::Render() {
 }
 
 void MenuState::Pause() { /*It shouldn't be posible to pause the menu*/ }
-void MenuState::Resume() {/*It shouldn't be posible to unpause the menu*/ }
+void MenuState::Resume() {/*It shouldn't be posible to unpause the menu, either*/ }
 void MenuState::Exit() {}
 
 //Inherited classes: Game
@@ -183,6 +186,7 @@ enum ObstacleInfo { OBST_THRESHOLD = 3, MAX_OBST = 9, OBST_SIZE = 128, };
 GameState::GameState() : m_iNumObst(0) {
 	m_vObstacles.reserve(MAX_OBST);
 	m_vForegrounds.reserve(3);
+	m_rGroundLine = {0, 512, 1024, 512};
 }
 
 GameState::compl GameState() {}
@@ -225,12 +229,17 @@ void GameState::Enter() {
 		m_vForegrounds.push_back(new Background(tempIndex, tempDest, tempSrc, tempSpeed));
 	}
 
-	//because Obstacles and Player will be different kinds of objects, 
-	//	they can't be initialized into the Sprite vector
-	//	initialize with empty obstacles
 	for (int i = 0; i < MAX_OBST; ++i) { 
 		m_vObstacles.push_back(new Obstacle(i * OBST_SIZE));
 	}
+
+	m_pPlayer = new Player(StateMachine::Instance().RequestPlayerID());
+	m_pPlayer->GetSprite()->SetDest({1024/2, 512-128, 128, 128});
+	m_pPlayer->GetSprite()->SetState(new SpriteState(RUNNING));
+
+	m_vSprites.shrink_to_fit();
+	m_vForegrounds.shrink_to_fit();
+	m_vObstacles.shrink_to_fit();
 
 	std::cout << "Obstacles: " << m_vObstacles.size() << std::endl;
 }
@@ -265,11 +274,19 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 		for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); it++) {
 			(*it)->Update();
 		}
+	}
 
+	if (m_pPlayer) m_pPlayer->Update();
+
+	if (!m_vForegrounds.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
 			(*it)->Update();
 		}
 	}
+
+	if (SDL_IntersectRectAndLine(m_pPlayer->GetCollP(), &m_rGroundLine.x, &m_rGroundLine.y, &m_rGroundLine.w, &m_rGroundLine.h));
+
+	if (CheckCollision()) { /*TAKE ADEQUATE MEASURES*/ }
 }
 
 void GameState::Render() { //Can't rely on State's original rendering, due to its multilayer approach
@@ -282,13 +299,18 @@ void GameState::Render() { //Can't rely on State's original rendering, due to it
 			(*it)->Render();
 		}
 	}
-
-	for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); it++) {
-		(*it)->Render();
+	if (!m_vObstacles.empty()) {
+		for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); it++) {
+			(*it)->Render();
+		}
 	}
 
-	for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
-		(*it)->Render();
+	if (m_pPlayer) m_pPlayer->Render();
+
+	if (!m_vForegrounds.empty()) {
+		for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
+			(*it)->Render();
+		}
 	}
 
 	SDL_RenderPresent(RendererManager::Instance()->GetRenderer());
@@ -310,7 +332,18 @@ void GameState::Exit() {
 	if (Mix_PlayingMusic()) Mix_HaltMusic();
 }
 
-bool GameState::CheckCollision(SDL_Rect bound1, SDL_Rect bound2) { return false; }
+bool GameState::CheckCollision() { 
+
+	if (!m_vObstacles.empty()) {
+		for (std::vector<Obstacle*>::iterator it = m_vObstacles.begin(); it != m_vObstacles.end(); ++it) {
+			if ((*it)->GetSpriteP() != nullptr) {
+				if (SDL_HasIntersection(m_pPlayer->GetCollP(), (*it)->GetCollRectP()))
+					return true;
+			}
+		}
+	}
+	return false;
+}
 
 //Inherited classes: Pause
 PauseState::PauseState() {}
@@ -323,38 +356,31 @@ void PauseState::Enter() {
 	std::cout << "enter pause" << std::endl;
 
 	SDL_Rect* temp = nullptr;
-	//12: Pause Text
-	temp = TextureManager::Instance()->GetSize(12, 350, 75);
-	m_vSprites.push_back(new Sprite(12, *temp));
 
-	//13: Resume Text
-	temp = TextureManager::Instance()->GetSize(13, 200, 400);
-	m_vSprites.push_back(new Sprite(13, *temp));
+	//14: Game paused text index
+	temp = TextureManager::Instance()->GetSize(14, 200, 150);
+	m_vSprites.push_back(new Sprite(14, *temp));
 
-	//1: play button image
+	//15: Resume text index
+	temp = TextureManager::Instance()->GetSize(15, 200, 400);
+	m_vSprites.push_back(new Sprite(15, *temp));
+
+	//18: title text index
+	temp = TextureManager::Instance()->GetSize(18, 550, 400);
+	m_vSprites.push_back(new Sprite(18, *temp));
+
+	//2: Play button image index
 	Command* c = new StateChangeCommand;
-	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), false, 1));
-	temp = TextureManager::Instance()->GetSize(1, 200, 500);
+	temp = TextureManager::Instance()->GetSize(2, 300, 500);
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), false, 2));
 	m_vSprites.back()->SetDest(*temp);
 
-	//16: Title Text
-	temp = TextureManager::Instance()->GetSize(16, 500, 400);
-	m_vSprites.push_back(new Sprite(16, *temp));
-
-	//1: Play button image. Will implement proper button if I have the time
-	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), false, 1));
-	temp = TextureManager::Instance()->GetSize(1, 500, 500);
+	//4: Title button image index
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), false, 4));
+	temp = TextureManager::Instance()->GetSize(4, 565, 500);
 	m_vSprites.back()->SetDest(*temp);
 
-	//9: Quit Text
-	temp = TextureManager::Instance()->GetSize(9, 750, 400);
-	m_vSprites.push_back(new Sprite(9, *temp));
-
-	//this begets a new command, actually...
-	Command* q = new QuitCommand;
-	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 2)); //2: quit button image
-	temp = TextureManager::Instance()->GetSize(2, 800, 500);
-	m_vSprites.back()->SetDest(*temp);
+	m_vSprites.shrink_to_fit();
 }
 
 void PauseState::Update() { State::Update(); }
