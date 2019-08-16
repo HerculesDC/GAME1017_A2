@@ -22,6 +22,7 @@ class Sprite {
 		virtual void SetSource(SDL_Rect srcRect);
 		virtual void SetDest(SDL_Rect destRect);
 		virtual void SetX(int i) { m_rDst.x = i; }
+		virtual void SetY(int i) { m_rDst.y = i; }
 
 		//In retrospect, this should've been a sign that I ought to have reworked something...
 		virtual void SetSpeed(int i) {/*empty method for overriding*/}

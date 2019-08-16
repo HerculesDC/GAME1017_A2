@@ -1,7 +1,6 @@
 #include <iostream>
 #include <typeinfo>
 #include "StateMachine.hpp"
-//#include "Sprite.hpp"
 
 StateMachine& StateMachine::Instance() {
 
@@ -76,7 +75,28 @@ bool StateMachine::RequestStateChange(void* toState) {
 	}
 }
 
-void StateMachine::Update() { if (!m_vStates.empty()) m_vStates.back()->Update(); }
+void StateMachine::Update() { 
+
+	if (!m_vStates.empty()) { 
+		m_vStates.back()->Update();
+		
+		MenuState* m = dynamic_cast<MenuState*>(m_vStates.back());
+
+		if (m != nullptr) {
+			m_iPlayer = m->GetPlayer();
+		}
+
+		//RETHINK
+		GameState* g = dynamic_cast<GameState*>(m_vStates.back());
+
+		if (g != nullptr) {
+			if (!g->PlayerAlive()) {
+				std::cout << "Player died" << std::endl;
+				RequestStateChange(new MachineStates(LOSE));
+			}
+		}
+	}
+}
 
 void StateMachine::Render() {
 	//the whole function operates on the assumption that, 

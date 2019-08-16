@@ -1,14 +1,21 @@
-#include "Player.hpp"/
+#include "Player.hpp"
 #include "Managers.hpp"
 
-Player::Player(int index) :
-	m_aSprite(index)
+Player::Player(int index) : m_aSprite(index), m_bIsGrounded(false), m_dGrav(12.0),
+							m_dVelX(0.0), m_dVelY(0.0), m_dAccelX(0.0), m_dAccelY(0.0),
+							m_dMaxVelX(6.0), m_dDrag(0.925)
 {
+	m_dMaxVelY = m_dGrav;
 }
 
-void Player::SetX(int x) {}
+//not sure whether I'd use both these functions, but imma keep'em here for now
+void Player::SetX(int x) { m_aSprite.SetX(x); }
+void Player::SetY(int y) { m_aSprite.SetY(y); }
 
-void Player::SetY(int y) {}
+void Player::Kill() {
+	if (m_aSprite.GetCurState() != DYING)
+		m_aSprite.SetState(new SpriteState(DYING));
+}
 
 void Player::Update() {
 
@@ -21,11 +28,10 @@ void Player::Render() {
 	m_aSprite.Render();
 
 	//Will need to define the collision rect's 
-//boundaries and whatnot before rendering
+	//boundaries and whatnot before rendering
 	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 128, 128, 255, 100);
 	SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_ADD);
 	SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rColl);
-
 }
 
 void Player::UpdateCollision() { //hard-coded offsets

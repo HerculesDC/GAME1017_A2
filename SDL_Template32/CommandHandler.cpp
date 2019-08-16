@@ -51,7 +51,14 @@ void CommandHandler::HandleEvents() {
 		case SDL_QUIT:
 			Game::Instance()->Quit(); //rig this better
 			break;
+		case SDL_KEYDOWN:
+			break;
+		case SDL_KEYUP:
+			break;
 		case SDL_MOUSEBUTTONDOWN:
+			m_pMouseButton = new SDL_MouseButtonEvent(evt.button);
+			SDL_GetMouseState(&m_Mouse.x, &m_Mouse.y);
+			break;
 		case SDL_MOUSEBUTTONUP:
 			m_pMouseButton = new SDL_MouseButtonEvent(evt.button);
 			SDL_GetMouseState(&m_Mouse.x, &m_Mouse.y);

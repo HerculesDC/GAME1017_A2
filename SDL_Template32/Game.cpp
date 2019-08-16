@@ -89,7 +89,7 @@ bool Game::Init()
 					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("game paused"));				//14
 					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("resume"));					//15
 					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("u  dead !"));				//16
-					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry ?"));					//17
+					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("retry"));					//17
 					TextureManager::Instance()->Add(MessageFactory::Instance()->Export("title"));					//18
 				}
 				else {

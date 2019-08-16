@@ -9,6 +9,7 @@ class Player {
 		AnimatedSprite* GetSprite() { return &m_aSprite; }
 		SDL_Rect* GetCollP() { return &m_rColl; }
 		bool IsGrounded() const { return m_bIsGrounded && (m_dVelY == 0); }
+		bool IsAlive() const { return m_aSprite.GetCurState() != DYING; }
 		double GetVelX() const { return m_dVelX; }
 		double GetVelY() const { return m_dVelY; }
 		
@@ -29,9 +30,11 @@ class Player {
 		void SetX(int x);// { m_rDst.x = x; }
 		void SetY(int y);// { m_rDst.y = y; }
 		
-		void MoveX();
+		void MoveX() { m_dAccelX += 0.1; }
 		void Update();
 		void Render();
+
+		void Kill();
 
 	private:
 		void UpdateCollision();
@@ -39,9 +42,10 @@ class Player {
 	private:
 		AnimatedSprite m_aSprite;
 		SDL_Rect m_rColl;
-		double m_dAccelx, m_dAccelY,
+		double m_dAccelX, m_dAccelY,
 			m_dMaxAccelX,
 			m_dVelX, m_dVelY,
+			m_dMaxVelX, m_dMaxVelY,
 			m_dDrag, m_dGrav;
 		bool m_bIsGrounded;
 };

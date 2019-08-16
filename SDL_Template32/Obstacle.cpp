@@ -2,6 +2,41 @@
 #include "Obstacle.hpp"
 #include "Managers.hpp"
 
+Obstacle::Obstacle(int xStart, int yStart, ObstacleType oType, int speed, int index,
+				   bool isPlatform, double rotSpeed):
+	m_iX(xStart), m_iY(yStart), m_iSpeed(speed)
+{
+	SDL_Rect tempDest;
+		switch (oType) {
+		case BUZZSAW:
+			tempDest = { m_iX, m_iY, m_iObstacleSize, m_iObstacleSize };
+			m_pSprite = new Sprite(index, tempDest, { m_iObstacleSize, m_iObstacleSize, m_iObstacleSize, m_iObstacleSize });
+			m_rColl = tempDest;
+			m_bRotates = true;
+			if (m_bRotates) { m_dRotSpeed = rotSpeed; }
+			break;
+		case SPIKED_FLOOR:
+			tempDest = { m_iX, m_iY, m_iObstacleSize, m_iObstacleSize/2 };
+			m_pSprite = new Sprite(index, tempDest, { m_iObstacleSize, m_iObstacleSize/2, m_iObstacleSize, m_iObstacleSize/2 });
+			m_rColl = tempDest;
+			m_bRotates = false;
+			if (m_bRotates) { m_dRotSpeed = rotSpeed; }
+			else m_bRotates = 0.0;
+			break;
+		case SPIKED_WALL:
+			tempDest = { m_iX, m_iY, m_iObstacleSize, 7* m_iObstacleSize / 2 };
+			m_pSprite = new Sprite(index, tempDest, { 0, 0, m_iObstacleSize, 7 * m_iObstacleSize/2 });
+			m_rColl = tempDest;
+			m_bRotates = false;
+			if (m_bRotates) { m_dRotSpeed = rotSpeed; }
+			else m_bRotates = 0.0;
+			break;
+		default:
+			m_pSprite = nullptr;
+			m_bRotates = false;
+		}
+}
+
 Obstacle::Obstacle(int xStart, int speed, bool hasSprite, int index,
 				   SDL_Rect destination, SDL_Rect source,
 				   bool isPlatform, bool rotates, double rotSpeed):

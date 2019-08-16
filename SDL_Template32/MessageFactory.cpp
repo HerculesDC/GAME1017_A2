@@ -1,6 +1,8 @@
 #include "MessageFactory.hpp"
 #include "Managers.hpp"
 
+//Consider turning this into a non-singleton class.
+//The point is that, after creating the messages, this class needs not stay in memory
 MessageFactory* MessageFactory::Instance() {
 
 	static MessageFactory* instance = new MessageFactory();

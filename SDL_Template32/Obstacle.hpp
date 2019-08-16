@@ -7,11 +7,12 @@
 #pragma once
 #include "Sprite.hpp"
 
-enum class ObstacleType {EMPTY, BUZZSAW, SPIKED_FLOOR, SPIKED_WALL,};
+enum ObstacleType{EMPTY = -1, BUZZSAW, SPIKED_FLOOR, SPIKED_WALL,};
 
 class Obstacle {
 	public:
-		//Obstacle(ObstacleType oType = ObstacleType::EMPTY);
+		Obstacle(int xStart, int yStart, ObstacleType oType = ObstacleType::EMPTY, int speed = 6,
+				 int index = 6, bool isPlatform = false, double rotSpeed = 10.0);
 		Obstacle(int xStart, int speed = 6, bool hasSprite = false, int index = 6,
 				 SDL_Rect destination = {0, 0, 0, 0}, SDL_Rect source = { 0, 0, 0, 0 },
 				 bool isPlatform = false, bool rotates = false, double rotSpeed = 10.0);
@@ -23,16 +24,17 @@ class Obstacle {
 		Sprite GetSprite() const { return *m_pSprite; }
 		Sprite* GetSpriteP() const { return m_pSprite; }
 		SDL_Rect GetCollRect() const { return m_rColl; }
-		SDL_Rect* GetCollRectP() { return &m_rColl; }
+		SDL_Rect* GetCollRectP() { return &m_rColl; }		
 
 		void Update();
 		void Render();
 
 	private:
 		//no platforms planned for now
+		const static int m_iObstacleSize = 128;
 		Sprite* m_pSprite;
 		SDL_Rect m_rColl; //collision rect
 		double m_dAngle, m_dRotSpeed;
-		int m_iX, m_iSpeed;
+		int m_iX, m_iY, m_iSpeed;
 		bool m_bRotates;
 };

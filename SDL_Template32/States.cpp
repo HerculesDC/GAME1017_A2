@@ -105,7 +105,7 @@ void TitleState::Exit() {
 }
 
 //Inherited classes: Menu
-MenuState::MenuState() {}
+MenuState::MenuState() : m_iPlayerIndex(0){}
 MenuState::compl MenuState() {}
 
 void MenuState::Enter() {
@@ -159,7 +159,7 @@ void MenuState::Update() {
 		AnimatedButton* test = dynamic_cast<AnimatedButton*>((*it));
 		if (test != nullptr) {
 			if (test->GetCurState() == MOUSEDOWN) {
-				StateMachine::Instance().SetPlayer(test->GetPlayer());
+				m_iPlayerIndex = test->GetPlayer();
 			}
 		}
 	}
@@ -230,7 +230,7 @@ void GameState::Enter() {
 	}
 
 	for (int i = 0; i < MAX_OBST; ++i) { 
-		m_vObstacles.push_back(new Obstacle(i * OBST_SIZE));
+		m_vObstacles.push_back(new Obstacle(i * OBST_SIZE, 0, ObstacleType::EMPTY));
 	}
 
 	m_pPlayer = new Player(StateMachine::Instance().RequestPlayerID());
@@ -261,11 +261,9 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 			delete m_vObstacles.front();
 			m_vObstacles.erase(m_vObstacles.begin());
 			if (m_iNumObst == 0) {
-				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 6, true, 6, 
-					{8* OBST_SIZE, 448, OBST_SIZE, OBST_SIZE }, { OBST_SIZE , OBST_SIZE , OBST_SIZE , OBST_SIZE },
-					false, true, 5.0));
+				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 448, ObstacleType::BUZZSAW));
 			}
-			else m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE));
+			else m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 0, ObstacleType::EMPTY));
 			
 			if (m_iNumObst == OBST_THRESHOLD) { m_iNumObst = 0; }
 			else ++m_iNumObst;
@@ -276,17 +274,24 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 		}
 	}
 
-	if (m_pPlayer) m_pPlayer->Update();
+	if (m_pPlayer) { 
+
+		m_pPlayer->Update();
+
+		if (CheckCollision()) m_pPlayer->Kill();
+
+		if (SDL_IntersectRectAndLine(m_pPlayer->GetCollP(), &m_rGroundLine.x, &m_rGroundLine.y, &m_rGroundLine.w, &m_rGroundLine.h)) {
+			m_pPlayer->SetVelY(0.0);
+			m_pPlayer->SetY(m_rGroundLine.y - m_pPlayer->GetSprite()->GetDstP()->h);
+			m_pPlayer->SetGrounded(true);
+		}
+	}
 
 	if (!m_vForegrounds.empty()) {
 		for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
 			(*it)->Update();
 		}
 	}
-
-	if (SDL_IntersectRectAndLine(m_pPlayer->GetCollP(), &m_rGroundLine.x, &m_rGroundLine.y, &m_rGroundLine.w, &m_rGroundLine.h));
-
-	if (CheckCollision()) { /*TAKE ADEQUATE MEASURES*/ }
 }
 
 void GameState::Render() { //Can't rely on State's original rendering, due to its multilayer approach
@@ -407,7 +412,48 @@ void PauseState::Exit() {
 LoseState::LoseState() {}
 LoseState::compl LoseState() {}
 
-void LoseState::Enter() { std::cout << "enter lose" << std::endl; }
+void LoseState::Enter() { 
+	std::cout << "enter lose" << std::endl;
+
+	if (Mix_PlayingMusic()) Mix_HaltMusic();
+
+	SDL_Rect* temp = nullptr;
+
+	//16: You lose text index
+	temp = TextureManager::Instance()->GetSize(16, 350, 150);
+	m_vSprites.push_back(new Sprite(16, *temp));
+
+	//17: Retry text index
+	temp = TextureManager::Instance()->GetSize(17, 150, 400);
+	m_vSprites.push_back(new Sprite(17, *temp));
+
+	//18: Title text index
+	temp = TextureManager::Instance()->GetSize(18, 425, 400);
+	m_vSprites.push_back(new Sprite(18, *temp));
+
+	//11: Quit text index
+	temp = TextureManager::Instance()->GetSize(11, 700, 400);
+	m_vSprites.push_back(new Sprite(11, *temp));
+
+	//2: Play button image index
+	Command* c = new StateChangeCommand;
+	temp = TextureManager::Instance()->GetSize(2, 200, 500);
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(GAME), false, 2));
+	m_vSprites.back()->SetDest(*temp);
+
+	//4: Title button image index
+	m_vSprites.push_back(new Button(*c, &Command::Execute, new MachineStates(TITLE), false, 4));
+	temp = TextureManager::Instance()->GetSize(4, 475, 500);
+	m_vSprites.back()->SetDest(*temp);
+
+	//3: Quit button image index
+	Command* q = new QuitCommand;
+	m_vSprites.push_back(new Button(*q, &Command::Execute, new MachineStates(QUIT), false, 3));
+	temp = TextureManager::Instance()->GetSize(4, 750, 500);
+	m_vSprites.back()->SetDest(*temp);
+
+	m_vSprites.shrink_to_fit();
+}
 
 void LoseState::Update() {
 	State::Update();
@@ -422,6 +468,6 @@ void LoseState::Render() {
 	State::Render();
 }
 
-void LoseState::Pause() { std::cout << "pause lose" << std::endl; }
-void LoseState::Resume() { std::cout << "resume lose" << std::endl; }
-void LoseState::Exit() { std::cout << "exit lose" << std::endl; }
+void LoseState::Pause() { /*No reason to pause lose*/ }
+void LoseState::Resume() { /*No reason to resume lose*/ }
+void LoseState::Exit() { /*Cleanup comes here*/ }

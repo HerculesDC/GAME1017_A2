@@ -1,11 +1,11 @@
 #pragma once
 #include <vector>
 #include "SDL.h"
-//#include "Player.hpp"
+#include "Player.hpp"
 
-class Sprite;
+//class Sprite;
 class Obstacle;
-class Player;
+//class Player;
 
 class State{
 	public:
@@ -46,6 +46,11 @@ class MenuState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+
+		int GetPlayer() { return m_iPlayerIndex; }
+
+	private:
+		int m_iPlayerIndex;
 };
 
 class GameState : public State {
@@ -59,6 +64,8 @@ class GameState : public State {
 		void Pause() final override;
 		void Resume() final override;
 		void Exit() final override;
+
+		bool PlayerAlive() { return m_pPlayer->IsAlive(); }
 
 	private:
 		int m_iNumObst;

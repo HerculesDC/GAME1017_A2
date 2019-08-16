@@ -17,7 +17,6 @@ class StateMachine {
 		bool RequestStateChange(void* toState);
 
 		int RequestPlayerID() { return m_iPlayer; }
-		void SetPlayer(int playerIndex) { m_iPlayer = (playerIndex % 3); }
 
 		void Update();
 		void Render();
