@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <cstdlib>
 
 #include "Game.h"
 #include "Managers.hpp"
@@ -14,6 +15,7 @@ using namespace chrono;
 
 Game::Game() :m_bStarted(false), m_bRunning(false)
 {
+	srand(time(NULL));
 	cout << "Constructing engine." << endl;
 	m_fps = (Uint32)round((1 / (double)FPS) * 1000); // Sets FPS in milliseconds and rounds.
 }
@@ -107,8 +109,8 @@ bool Game::Init()
 			if (AudioManager::Instance()->Init()) {
 				//Music and Sound Indices:
 				AudioManager::Instance()->AddMusic("Sound/Chase.mp3"); //0
-				AudioManager::Instance()->AddMusic("Sound/Death.mp3"); //1
 				AudioManager::Instance()->AddChunk("Sound/SCD_FM_02.wav"); //0
+				AudioManager::Instance()->AddChunk("Sound/KC_Die.wav"); //1
 			}
 			else
 			{

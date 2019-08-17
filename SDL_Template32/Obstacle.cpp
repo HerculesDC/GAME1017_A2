@@ -71,14 +71,18 @@ void Obstacle::Update() {
 }
 
 void Obstacle::Render() {
+
 	if (m_pSprite != nullptr) {
 		SDL_RenderCopyEx(RendererManager::Instance()->GetRenderer(), m_pSprite->GetTexture(), 
 						 m_pSprite->GetSrcP(), m_pSprite->GetDstP(), 
 						 m_dAngle, NULL, SDL_FLIP_NONE);
+
 		//obs.: NULL centers the rotation point, SDL_FLIP_NONE ensures sprite isn't flipped
 		//COLLISION SPECS (will be refactored
+		/*
 		SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 255, 128, 128, 100);
 		SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_ADD);
 		SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rColl);
+		*/
 	}
 }

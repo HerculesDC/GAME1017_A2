@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include "States.hpp"
 #include "Managers.hpp"
 #include "Sprite.hpp"
@@ -92,17 +93,7 @@ void TitleState::Render() {
 void TitleState::Pause() { /*It shouldn't be posible to pause the title*/ }
 void TitleState::Resume() { /*It shouldn't be posible to unpause the title*/ }
 
-void TitleState::Exit() { 
-	//THIS CODE IS CAUSING SOME UNDESIRED SIDE-EFFECTS...
-	/*
-	if (!m_vSprites.empty()) {
-		for (std::vector<Sprite*>::iterator it = m_vSprites.begin(); it != m_vSprites.end(); it++) {
-			delete (*it);
-			(*it) = nullptr;
-		}
-	}
-	*/
-}
+void TitleState::Exit() { }
 
 //Inherited classes: Menu
 MenuState::MenuState() : m_iPlayerIndex(0){}
@@ -181,17 +172,19 @@ void MenuState::Exit() {}
 
 //Inherited classes: Game
 //These values are merely informative, and should be readily convertible
-enum ObstacleInfo { OBST_THRESHOLD = 3, MAX_OBST = 9, OBST_SIZE = 128, };
+enum SpriteInfo { OBST_THRESHOLD = 3, MAX_OBST = 9, SPRITE_SIZE = 128, };
 
 GameState::GameState() : m_iNumObst(0) {
 	m_vObstacles.reserve(MAX_OBST);
 	m_vForegrounds.reserve(3);
-	m_rGroundLine = {0, 512, 1024, 512};
+	m_rGroundRect = {0, 512, 1024, 256};
 }
 
 GameState::compl GameState() {}
 
 void GameState::Enter() {
+
+	m_bPlayedDeath = false;
 	
 	//OBS: Still not sure where to put the death sound
 
@@ -230,22 +223,20 @@ void GameState::Enter() {
 	}
 
 	for (int i = 0; i < MAX_OBST; ++i) { 
-		m_vObstacles.push_back(new Obstacle(i * OBST_SIZE, 0, ObstacleType::EMPTY));
+		m_vObstacles.push_back(new Obstacle(i * SPRITE_SIZE, 0, ObstacleType::EMPTY));
 	}
 
 	m_pPlayer = new Player(StateMachine::Instance().RequestPlayerID());
-	m_pPlayer->GetSprite()->SetDest({1024/2, 512-128, 128, 128});
-	m_pPlayer->GetSprite()->SetState(new SpriteState(RUNNING));
+	m_pPlayer->GetSprite()->SetDest({1024/4, 512-256, SPRITE_SIZE, SPRITE_SIZE});
+	m_pPlayer->GetSprite()->SetState(new SpriteState(JUMPING));
 
 	m_vSprites.shrink_to_fit();
 	m_vForegrounds.shrink_to_fit();
 	m_vObstacles.shrink_to_fit();
-
-	std::cout << "Obstacles: " << m_vObstacles.size() << std::endl;
 }
 
 void GameState::Update() {//OBS: The State Machine handles the pause
-	
+
 	if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_P)) 
 		StateMachine::Instance().RequestStateChange(new MachineStates(PAUSE));
 	
@@ -257,13 +248,22 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 
 	if (!m_vObstacles.empty()) {
 
-		if (m_vObstacles.front()->GetX() < -(OBST_SIZE)) {
+		if (m_vObstacles.front()->GetX() < -(SPRITE_SIZE)) {
 			delete m_vObstacles.front();
 			m_vObstacles.erase(m_vObstacles.begin());
-			if (m_iNumObst == 0) {
-				m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 448, ObstacleType::BUZZSAW));
+			if (m_iNumObst == 0) { 
+				switch (rand() % 3) {
+				case 0:
+					m_vObstacles.push_back(new Obstacle(8 * SPRITE_SIZE, 448, ObstacleType::BUZZSAW));
+					break;
+				case 1:
+					m_vObstacles.push_back(new Obstacle(8 * SPRITE_SIZE, 448, ObstacleType::SPIKED_FLOOR));
+					break;
+				case 2:
+					m_vObstacles.push_back(new Obstacle(8 * SPRITE_SIZE, 0, ObstacleType::SPIKED_WALL));
+				}
 			}
-			else m_vObstacles.push_back(new Obstacle(8 * OBST_SIZE, 0, ObstacleType::EMPTY));
+			else m_vObstacles.push_back(new Obstacle(8 * SPRITE_SIZE, 0, ObstacleType::EMPTY));
 			
 			if (m_iNumObst == OBST_THRESHOLD) { m_iNumObst = 0; }
 			else ++m_iNumObst;
@@ -274,20 +274,53 @@ void GameState::Update() {//OBS: The State Machine handles the pause
 		}
 	}
 
-	if (m_pPlayer) { 
-
-		m_pPlayer->Update();
-
-		if (CheckCollision()) m_pPlayer->Kill();
-
-		if (SDL_IntersectRectAndLine(m_pPlayer->GetCollP(), &m_rGroundLine.x, &m_rGroundLine.y, &m_rGroundLine.w, &m_rGroundLine.h)) {
-			m_pPlayer->SetVelY(0.0);
-			m_pPlayer->SetY(m_rGroundLine.y - m_pPlayer->GetSprite()->GetDstP()->h);
-			m_pPlayer->SetGrounded(true);
+	if (m_pPlayer) {
+		if (m_pPlayer->IsAlive()) {
+			m_pPlayer->SetX(1024/4);
+			if (m_pPlayer->IsGrounded()) {
+				if (m_pPlayer->GetState() == RUNNING) {
+					if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_S))
+						m_pPlayer->Set(new SpriteState(ROLLING));
+					else if (CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_SPACE)) {
+						m_pPlayer->SetGrounded(false);
+						m_pPlayer->SetAccelY(-(3*m_pPlayer->GetGravity()));
+						m_pPlayer->Set(new SpriteState(JUMPING));
+						if (!Mix_Playing(-1)) Mix_PlayChannel(-1, AudioManager::Instance()->GetChunk(0), 0);
+					}
+				}
+				else if (m_pPlayer->GetState() == ROLLING) {
+					if (!CommandHandler::Instance()->GetKeyDown(SDL_SCANCODE_S))
+						m_pPlayer->Set(new SpriteState(RUNNING));
+				}
+			}
 		}
+
+		if (CheckCollision()) { 
+			if (Mix_PlayingMusic()) Mix_HaltMusic();
+			if (Mix_Playing(-1) && !m_bPlayedDeath) { 
+				Mix_HaltChannel(-1);
+				Mix_PlayChannel(-1, AudioManager::Instance()->GetChunk(1), 0);
+				m_bPlayedDeath = true;
+			}
+
+			m_pPlayer->Set(new SpriteState(DYING));
+		}
+		
+		m_pPlayer->Update();
+		m_pPlayer->SetAccelY(0.0);
+
+		if (SDL_HasIntersection(m_pPlayer->GetSprite()->GetDstP(), &m_rGroundRect)) {
+			m_pPlayer->SetGrounded(true);
+			m_pPlayer->SetY(m_rGroundRect.y - (1+m_pPlayer->GetH()));
+			if (m_pPlayer->GetState() == JUMPING) {
+				m_pPlayer->Set(new SpriteState(RUNNING));
+			}
+		}
+		else m_pPlayer->SetGrounded(false);
 	}
 
 	if (!m_vForegrounds.empty()) {
+
 		for (std::vector<Sprite*>::iterator it = m_vForegrounds.begin(); it != m_vForegrounds.end(); it++) {
 			(*it)->Update();
 		}
@@ -317,6 +350,12 @@ void GameState::Render() { //Can't rely on State's original rendering, due to it
 			(*it)->Render();
 		}
 	}
+
+	/*
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 0, 255, 0, 50);
+	SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
+	SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), &m_rGroundRect);
+	*/
 
 	SDL_RenderPresent(RendererManager::Instance()->GetRenderer());
 }
@@ -392,7 +431,7 @@ void PauseState::Update() { State::Update(); }
 
 void PauseState::Render() {
 	//requires setting blend mode because it's a semitransparent overlay
-	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 127, 127, 127, 50);
+	SDL_SetRenderDrawColor(RendererManager::Instance()->GetRenderer(), 127, 127, 127, 100);
 	SDL_SetRenderDrawBlendMode(RendererManager::Instance()->GetRenderer(), SDL_BLENDMODE_BLEND);
 	//we want to render an overlay, not clear the screen
 	SDL_RenderFillRect(RendererManager::Instance()->GetRenderer(), nullptr);
@@ -400,12 +439,13 @@ void PauseState::Render() {
 	State::Render();
 }
 
-void PauseState::Pause() { std::cout << "pause pause" << std::endl; }
-void PauseState::Resume() { std::cout << "resume pause" << std::endl; }
+void PauseState::Pause() { }
+void PauseState::Resume() { }
 
 void PauseState::Exit() { 
-	std::cout << "exit pause" << std::endl;
+	
 	if (Mix_PausedMusic()) Mix_ResumeMusic();
+	if (Mix_Playing(-1)) Mix_HaltChannel(-1);
 }
 
 //Inherited classes: Lose

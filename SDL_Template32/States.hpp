@@ -47,7 +47,7 @@ class MenuState : public State {
 		void Resume() final override;
 		void Exit() final override;
 
-		int GetPlayer() { return m_iPlayerIndex; }
+		int GetPlayer() const { return m_iPlayerIndex; }
 
 	private:
 		int m_iPlayerIndex;
@@ -65,16 +65,20 @@ class GameState : public State {
 		void Resume() final override;
 		void Exit() final override;
 
-		bool PlayerAlive() { return m_pPlayer->IsAlive(); }
+		// !IsAlive() triggers death animation
+		// IsDead() triggers state transition
+		bool PlayerAlive() { return !m_pPlayer->IsDead(); }
 
 	private:
-		int m_iNumObst;
-		SDL_Rect m_rGroundLine; //data for ground collision
+		bool CheckCollision();
+
+	private:	
+		SDL_Rect m_rGroundRect; //data for ground collision
 		std::vector<Obstacle*> m_vObstacles;
 		std::vector<Sprite*> m_vForegrounds;
 		Player* m_pPlayer; //may consider converting to object
-
-		bool CheckCollision();
+		int m_iNumObst;
+		bool m_bPlayedDeath;
 };
 
 class PauseState : public State {

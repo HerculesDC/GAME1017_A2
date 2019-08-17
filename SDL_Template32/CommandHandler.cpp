@@ -1,6 +1,9 @@
+#include <iostream>
 #include "CommandHandler.hpp"
 #include "StateMachine.hpp"
 #include "Game.h"
+
+Command::compl Command() {}
 
 bool StateChangeCommand::Execute(void* exec) { return StateMachine::Instance().RequestStateChange(exec); }
 
@@ -16,17 +19,15 @@ CommandHandler* CommandHandler::Instance() {
 	return instance;
 }
 
-Command* CommandHandler::IssueCommand() {
-	return nullptr;
-}
-
 CommandHandler::CommandHandler() : m_piKeyStates(SDL_GetKeyboardState(nullptr)), 
 								   m_Mouse({ 0,0 }), m_pMouseButton(nullptr),
 								   m_pMouseMotion(nullptr)
 {}
 
-CommandHandler::compl CommandHandler() {
-	m_piKeyStates = SDL_GetKeyboardState(nullptr);
+CommandHandler::compl CommandHandler() { }
+
+Command* CommandHandler::IssueCommand() {
+	return nullptr;
 }
 
 bool CommandHandler::GetKeyDown(SDL_Scancode c)
@@ -52,8 +53,10 @@ void CommandHandler::HandleEvents() {
 			Game::Instance()->Quit(); //rig this better
 			break;
 		case SDL_KEYDOWN:
+			m_piKeyStates = SDL_GetKeyboardState(nullptr);
 			break;
 		case SDL_KEYUP:
+			m_piKeyStates = SDL_GetKeyboardState(nullptr);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			m_pMouseButton = new SDL_MouseButtonEvent(evt.button);

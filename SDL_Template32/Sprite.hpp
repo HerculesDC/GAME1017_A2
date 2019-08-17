@@ -73,10 +73,12 @@ class AnimatedSprite : public virtual Sprite { //uses player's spritesheet by de
 		virtual void Render() override;
 		
 		//this one allows for "commandification" of the sprite
-		virtual bool SetState(void* exec);
+		
 		virtual SpriteState GetCurState() const { return m_sCurState; }
 		virtual int GetPlayer() const { return m_iSpriteBase; }
+		virtual bool IsDead() const;
 
+		virtual bool SetState(void* exec);
 	protected: //Unrelated classes shouldn't access Animate(), except through Update()
 		virtual void Animate();
 

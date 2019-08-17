@@ -45,6 +45,7 @@ bool StateMachine::RequestStateChange(void* toState) {
 				m_innerState = GAME;
 			}
 			else if (typeid(*(m_vStates.back())) == typeid(GameState)) {
+				m_innerState = GAME;
 				m_vStates.back()->Resume();
 			}
 			break;

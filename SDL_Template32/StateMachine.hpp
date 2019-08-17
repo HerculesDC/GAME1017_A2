@@ -16,6 +16,7 @@ class StateMachine {
 
 		bool RequestStateChange(void* toState);
 
+		MachineStates RequestState() const { return m_innerState; }
 		int RequestPlayerID() { return m_iPlayer; }
 
 		void Update();

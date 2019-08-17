@@ -73,7 +73,10 @@ void Button::Update() {
 				}
 			}
 		}
-		else m_innerState = MOUSEUP;
+		else { 
+			m_innerState = MOUSEUP;
+			m_bState = false;
+		}
 	}
 }
 
@@ -107,7 +110,7 @@ void AnimatedSprite::Animate() {
 		m_iCurFrame = 0;
 		m_iCurSprite++;
 
-		if (m_iCurSprite == m_iMaxSprite)
+		if (m_sCurState != DYING && m_iCurSprite == m_iMaxSprite)
 			m_iCurSprite = m_iMinSprite;
 	}
 	m_rSrc.x = m_rSrc.w * m_iCurSprite;
@@ -161,6 +164,13 @@ bool AnimatedSprite::SetState(void* state) {
 			return false;
 	}
 	return false;
+}
+
+bool AnimatedSprite::IsDead() const {
+	if (m_sCurState == DYING) {
+		return m_iCurSprite == m_iMaxSprite;
+	}
+	else return false;
 }
 
 void AnimatedSprite::Update() {

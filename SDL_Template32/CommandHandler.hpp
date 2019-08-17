@@ -5,8 +5,7 @@
 
 class Command {
 	public:
-		Command() {}
-		virtual compl Command() {}
+		virtual compl Command();
 		virtual bool Execute(void * param) = 0;
 };
 
@@ -19,10 +18,6 @@ class QuitCommand : public Command {
 };
 
 class KeyCommand : public Command {
-	virtual bool Execute(void* exec) override;
-};
-
-class PlayerChangeCommand : public Command {
 	virtual bool Execute(void* exec) override;
 };
 
